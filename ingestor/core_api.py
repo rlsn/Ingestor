@@ -2,13 +2,14 @@
 This script contains core functional APIs of the module
 rlsn 2024
 """
+import os
 import json
 import pandas as pd
 from .dataset_wrapper import Dataset
-from .__init__ import META_PATH, CACHE_DIR, DEFAULT_SUBSET_NAME
+from .__init__ import DATA_DIR, META_PATH, CACHE_DIR, DEFAULT_SUBSET_NAME
 
 def clear_cache():
-    import os,shutil
+    import shutil
     if os.path.exists(CACHE_DIR):
         shutil.rmtree(CACHE_DIR, ignore_errors=True)
     os.makedirs(CACHE_DIR,exist_ok=True)
@@ -147,6 +148,8 @@ def remove(name, subset=None, force_remove=False):
 
 def download(name, subset=None, partitions=None, force_redownload=False):
     metadata = load_meta()
+    os.makedirs(DATA_DIR,exist_ok=True)
+    os.makedirs(CACHE_DIR,exist_ok=True)
 
     if name not in metadata:
         raise Exception(f"[ERROR] dataset {name} not found.")
@@ -181,6 +184,8 @@ def download(name, subset=None, partitions=None, force_redownload=False):
 def load_dataset(name, subset=None, partitions=None, downloaded_only=False, **kwargs):
     filepaths = []
     metadata = load_meta()
+    os.makedirs(DATA_DIR,exist_ok=True)
+    os.makedirs(CACHE_DIR,exist_ok=True)
 
     if name not in metadata:
         raise Exception(f"[ERROR] dataset {name} not found.")
