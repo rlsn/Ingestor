@@ -1,0 +1,5 @@
+/data/*
+/cache/*
+*/__pycache__
+/.ipynb_checkpoints
+/ingestor/dataset_classes/__pycache__
