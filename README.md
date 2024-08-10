@@ -51,7 +51,7 @@ To remove downloaded data files in a subset:
 python cli.py -r -d <dataset_name> -s <subset_name>
 ```
 
-**To support a new dataset, add a new class file to [`ingestor/dataset_classes`](ingestor/dataset_classes) that defines how to organize, download and load data, following the example in [`ingestor/dataset_classes/wikipedia`](ingestor/dataset_classes/wikipedia). Then update the metadata by running `python cli.py -init -d <new_dataset_name>`**
+**To support a new dataset, add a new class file to [`ingestor/dataset_classes`](ingestor/dataset_classes) that defines how to organize, download and load data, following the example in [`ingestor/dataset_classes/wikipedia.py`](ingestor/dataset_classes/wikipedia.py). Then update the metadata by running `python cli.py -init -d <new_dataset_name>`**
 
 
 ## Technical Details
