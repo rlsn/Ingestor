@@ -1,7 +1,7 @@
 # Ingestor
 A platform designed to seamlessly acquire, organize, and manage diverse datasets, offering AI researchers a one-line downloader and data-loader for quick access to uniformly formatted data, while providing a scalable and easily manageable system for future dataset acquisition.
 
-The data can be stored in a local or network file system. Future updates may support object storage, such as S3. The data is organized into three levels: dataset, subset (distinguished by language, class, split, etc.), and partition (splitting large files into smaller chunks for memory efficiency), as follows:
+The data is stored in a file storage system and organized into three levels: dataset, subset (distinguished by language, class, split, etc.), and partition (splitting large files into smaller chunks for memory efficiency), as follows:
 
 ```
 dataset_A
