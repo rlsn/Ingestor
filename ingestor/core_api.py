@@ -52,8 +52,9 @@ def initialize(name=None, verbose=True):
 def list_datasets(display=True):
     datasets = sorted(list(Dataset._dataset_classes.keys()))
     if display:
+        print(f"{'dataset name':^25}|{'modality':^15}")
         for ds in datasets:
-            print(ds)
+            print(f"{ds:<25}|{Dataset.get(ds).modality:^15}")
     return datasets
 
 def list_subsets(name, display=True):
@@ -110,12 +111,12 @@ def remove(name, subset=None, force_remove=False):
         print(f"[WARNING] Subset is name not specified, you are about to remove all downloaded subsets from {name}.")
 
         if not force_remove:
-            prompt = input("[WARNING] Once deleted, they cannot be restored. type 'REMOVE' to confirm.")
+            prompt = input("[WARNING] Once deleted, they cannot be restored. type 'REMOVE' to confirm >")
             if prompt.lower()!="remove":
                 print("[INFO] Deletion aborted")
                 return
 
-        shutil.rmtree(metadata[name]["path"], ignore_errors=True)
+        shutil.rmtree(os.path.join(DATA_DIR, metadata[name]["path"]), ignore_errors=True)
 
         # update metadata
         for subset in metadata[name]['subsets']:
@@ -132,12 +133,12 @@ def remove(name, subset=None, force_remove=False):
     print(f"[WARNING] You are about to remove all downloaded data in {subset} from {name}.")
 
     if not force_remove:
-        prompt = input("[WARNING] Once deleted, they cannot be restored. type 'REMOVE' to confirm.")
+        prompt = input("[WARNING] Once deleted, they cannot be restored. type 'REMOVE' to confirm >")
         if prompt.lower()!="remove":
             print("[INFO] Deletion aborted")
             return
 
-    shutil.rmtree(metadata[name]["subsets"][subset]["path"], ignore_errors=True)
+    shutil.rmtree(os.path.join(DATA_DIR, metadata[name]["subsets"][subset]["path"]), ignore_errors=True)
     # update metadata
     metadata[name]['subsets'][subset]['downloaded']=0
     for part in metadata[name]['subsets'][subset]['partitions']:
@@ -170,8 +171,6 @@ def download(name, subset=None, partitions=None, force_redownload=False):
 
 
     for i, part in enumerate(partitions):
-        filepath = data_info["partitions"][part]["path"]
-
         if not data_info["partitions"][part]["downloaded"] or force_redownload:
             print(f"[INFO] [{i+1}/{len(partitions)}] downloading {part}")
             downloaded_path = data_cls.download(subset, part)
@@ -205,24 +204,22 @@ def load_dataset(name, subset=None, partitions=None, downloaded_only=False, **kw
         partitions = list(data_info["partitions"].keys())
     dataframes = []
     for i, part in enumerate(partitions):
-        filepath = data_info["partitions"][part]["path"]
+        filepath = os.path.join(DATA_DIR, data_info["partitions"][part]["path"])
         # download if needed
         if not data_info["partitions"][part]["downloaded"]:
             if downloaded_only:
-                print(f"[WARNING] partition {part} is not downloaded and therefore skipped.")
+                # print(f"[WARNING] partition {part} is not downloaded and therefore skipped.")
                 continue
             else:
                 print(f"[INFO] [{i+1}/{len(partitions)}] downloading {part}")
                 data_cls.download(subset, part)
                 data_info["partitions"][part]["downloaded"]=True
                 data_info["downloaded"]+=1
-
+                write_meta(metadata)
+                print("[INFO] metadata file updated.")
 
         # load
         dataframes.append(data_cls.load_partition(filepath))
-
-    write_meta(metadata)
-    print("[INFO] metadata file updated.")
         
     if len(dataframes)==0:
         return []

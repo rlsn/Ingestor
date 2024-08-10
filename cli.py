@@ -8,7 +8,7 @@ import ingestor
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-init', '--initialize', type=str, help="initialize metadata")
+    parser.add_argument('-init', '--initialize', action='store_true', help="initialize metadata")
 
     parser.add_argument('-l', '--list', action='store_true', help="list available datasets/subsets/partitions as specified (using -d and -s)")
     parser.add_argument('-d', '--dataset_name', type=str, help="specify dataset", default=None)

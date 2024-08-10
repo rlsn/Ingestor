@@ -14,24 +14,26 @@ from ..__init__ import DATA_DIR, CACHE_DIR, AUTO_CLEAR_CACHE
 @Dataset.register('wikimedia/wikipedia')
 class WikipediaDataset(object):
     namespace = "wikimedia/wikipedia"
+    modality = "text"
     @staticmethod
     def get_metadata(verbose=False):
         meta = {
-            "path":os.path.join(DATA_DIR, WikipediaDataset.namespace),
+            "path":WikipediaDataset.namespace,
+            "modality": WikipediaDataset.modality,
             "subsets":{}
         }
         for subs in list_repo_tree(WikipediaDataset.namespace, repo_type="dataset"):
             if type(subs)!=RepoFolder:
                 continue
             meta["subsets"][subs.path] = {
-                "path":os.path.join(DATA_DIR, WikipediaDataset.namespace, subs.path),
+                "path":os.path.join(WikipediaDataset.namespace, subs.path),
                 "downloaded":0,
                 "partitions":{}
             }
             if verbose:
                 print(f"retrieving info from {subs.path}")
             for part in list_repo_tree(WikipediaDataset.namespace,path_in_repo=subs.path, repo_type="dataset", expand=True):
-                path = os.path.join(DATA_DIR, WikipediaDataset.namespace, part.path)
+                path = os.path.join(WikipediaDataset.namespace, part.path)
                 downloaded = os.path.exists(path)
                 meta["subsets"][subs.path]["partitions"][os.path.basename(part.path)]={
                     "path":path,

@@ -12,21 +12,23 @@ from ..__init__ import DATA_DIR, CACHE_DIR, AUTO_CLEAR_CACHE
 @Dataset.register('wikimedia/wit_base')
 class WitbaseDataset(object):
     namespace = "wikimedia/wit_base"
+    modality = "text"
     @staticmethod
     def get_metadata(verbose=False):
         meta = {
-            "path":os.path.join(DATA_DIR, WitbaseDataset.namespace),
+            "path":WitbaseDataset.namespace,
+            "modality": WitbaseDataset.modality,
             "subsets":{}
         }
         meta["subsets"]["data"] = {
-            "path":os.path.join(DATA_DIR, WitbaseDataset.namespace, "data"),
+            "path":os.path.join(WitbaseDataset.namespace, "data"),
             "downloaded":0,
             "partitions":{}
         }
         if verbose:
             print(f"retrieving info from data")
         for part in list_repo_tree(WitbaseDataset.namespace,path_in_repo='data', repo_type="dataset", expand=True):
-            path = os.path.join(DATA_DIR, WitbaseDataset.namespace, "data", os.path.basename(part.path))
+            path = os.path.join(WitbaseDataset.namespace, "data", os.path.basename(part.path))
             downloaded = os.path.exists(path)
             meta["subsets"]["data"]["partitions"][os.path.basename(part.path)]={
                 "path":path,
