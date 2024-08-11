@@ -42,7 +42,7 @@ python cli.py -r -d <dataset_name> -s <subset_name>
 
 ## Technical Details
 ### Storage
-The data is stored in a file storage system and organized into three levels: dataset, subset (distinguished by language, class, split, etc.), and partition (splitting large files into smaller chunks for memory efficiency), as follows:
+The data is stored in a file storage system and organized into three levels: dataset, subset (distinguished by version, language, class, split, annotation, etc.), and partition (splitting large files into smaller chunks for memory efficiency), as follows:
 
 ```
 dataset_A

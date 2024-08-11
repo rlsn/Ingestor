@@ -5,36 +5,37 @@ rlsn 2024
 import os
 import pandas as pd
 from huggingface_hub import hf_hub_download, list_repo_tree
-from huggingface_hub.hf_api import RepoFolder
-from ..dataset_wrapper import Dataset
+from ..dataset_wrapper import Dataset, dataset_struct, subset_struct, partition_struct
 from ..__init__ import DATA_DIR, CACHE_DIR, AUTO_CLEAR_CACHE
 
 @Dataset.register('wikimedia/wit_base')
 class WitbaseDataset(object):
     namespace = "wikimedia/wit_base"
-    modality = "text"
     @staticmethod
     def get_metadata(verbose=False):
-        meta = {
-            "path":WitbaseDataset.namespace,
-            "modality": WitbaseDataset.modality,
-            "subsets":{}
-        }
-        meta["subsets"]["data"] = {
-            "path":os.path.join(WitbaseDataset.namespace, "data"),
-            "downloaded":0,
-            "partitions":{}
-        }
+        meta = dataset_struct(
+            path=WitbaseDataset.namespace,
+            modality=["text","image"],
+            source="https://huggingface.co/datasets/wikimedia/wit_base",
+            description="Wikimedia's version of the Wikipedia-based Image Text (WIT) Dataset, a large multimodal multilingual dataset.",
+            subsets={}
+        )
+        meta["subsets"]["data"] = subset_struct(
+            path=os.path.join(WitbaseDataset.namespace, "data"),
+            downloaded=0,
+            formats=["parquet"],
+            partitions={}
+        )
         if verbose:
             print(f"retrieving info from data")
         for part in list_repo_tree(WitbaseDataset.namespace,path_in_repo='data', repo_type="dataset", expand=True):
             path = os.path.join(WitbaseDataset.namespace, "data", os.path.basename(part.path))
-            downloaded = os.path.exists(path)
-            meta["subsets"]["data"]["partitions"][os.path.basename(part.path)]={
-                "path":path,
-                "size":part.size,
-                "downloaded":downloaded
-            }
+            downloaded = os.path.exists(os.path.join(DATA_DIR,path))
+            meta["subsets"]["data"]["partitions"][os.path.basename(part.path)]=partition_struct(
+                path=path,
+                size=part.size,
+                downloaded=downloaded
+            )
             meta["subsets"]["data"]["downloaded"] += 1 if downloaded else 0
         return meta
         

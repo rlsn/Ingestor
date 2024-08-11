@@ -2,14 +2,13 @@
 This script contains core functional APIs of the module
 rlsn 2024
 """
-import os
+import os, shutil
 import json
 import pandas as pd
 from .dataset_wrapper import Dataset
 from .__init__ import DATA_DIR, META_PATH, CACHE_DIR, DEFAULT_SUBSET_NAME
 
 def clear_cache():
-    import shutil
     if os.path.exists(CACHE_DIR):
         shutil.rmtree(CACHE_DIR, ignore_errors=True)
     os.makedirs(CACHE_DIR,exist_ok=True)
@@ -26,6 +25,23 @@ def write_meta(metadata):
     with open(META_PATH, "w") as fp:
         json.dump(metadata, fp, ensure_ascii=True, indent=4)
 
+def initialize_root():
+    metadata = dict()
+
+    metadata["data_root"] = DATA_DIR
+    metadata["cache_dir"] = CACHE_DIR
+    metadata["datasets"] = dict()
+
+    return metadata
+
+def import_from_path(path=None, name=None, subset=None, partition=None):
+    pass
+
+def initialize_dataset(metadata, name, verbose=False):
+    data_info = Dataset.get(name).get_metadata(verbose=verbose)
+    metadata["datasets"][name] = data_info
+
+
 def initialize(name=None, verbose=True):
     # run the dataset survey, update the metadata based on survey and data inventory
     try:
@@ -33,32 +49,40 @@ def initialize(name=None, verbose=True):
             metadata = json.load(fp)
         print("[INFO] loaded metadata file.")
     except:
-        print("[WARNING] metadata file is corrupted or not initialized, a new file will be created.")
-        metadata = {}
+        prompt = input("[WARNING] metadata file is corrupted or not initialized, a new file will be created. Continue?[y/n]")
+        if prompt.lower()!="y":
+            print("[INFO] initialization aborted.")
+            return
+        # create a backup in case of bad decision
+        if os.path.exists(META_PATH):
+            shutil.copyfile(META_PATH, META_PATH+'.bak')
+        metadata = initialize_root()
+
+
     if name is not None:
-        data_info = Dataset.get(name).get_metadata(verbose=verbose)
-        metadata[name] = data_info
+        initialize_dataset(metadata, name, verbose=verbose)
     else:
-        metadata = {}
         print("[INFO] no dataset specified, will update all registered datasets.")
         for ds in Dataset._dataset_classes:
-            print(f"updating metadata for {ds}")
-            data_info = Dataset.get(ds).get_metadata(verbose=verbose)
-            metadata[ds] = data_info
+            print(f"[INFO] updating metadata for {ds}")
+            initialize_dataset(metadata, ds, verbose=verbose)
 
     write_meta(metadata)
     print("[INFO] metadata file updated.")
     
 def list_datasets(display=True):
-    datasets = sorted(list(Dataset._dataset_classes.keys()))
+    root = load_meta()
+    metadata = root["datasets"]
+    datasets = sorted(list(metadata.keys()))
     if display:
-        print(f"{'dataset name':^25}|{'modality':^15}")
+        print(f"{'dataset name':^25}|{'modality':^25}|{'description':^30}")
         for ds in datasets:
-            print(f"{ds:<25}|{Dataset.get(ds).modality:^15}")
+            print(f"{ds:<25}|{','.join(metadata[ds]['modality']):^25}|{metadata[ds]['description']}")
     return datasets
 
 def list_subsets(name, display=True):
-    metadata = load_meta()
+    root = load_meta()
+    metadata = root["datasets"]
 
     if name not in metadata:
         raise Exception(f"[ERROR] dataset {name} not found.")
@@ -75,7 +99,8 @@ def list_subsets(name, display=True):
     return subsets
 
 def list_partitions(name, subset=None, display=True):
-    metadata = load_meta()
+    root = load_meta()
+    metadata = root["datasets"]
     
     if subset is None:
         subset = DEFAULT_SUBSET_NAME
@@ -101,8 +126,8 @@ def list_partitions(name, subset=None, display=True):
 
 
 def remove(name, subset=None, force_remove=False):
-    import shutil
-    metadata = load_meta()
+    root = load_meta()
+    metadata = root["datasets"]
 
     if name not in metadata:
         raise Exception(f"[ERROR] dataset '{name}' not found.")
@@ -123,7 +148,7 @@ def remove(name, subset=None, force_remove=False):
             metadata[name]['subsets'][subset]['downloaded']=0
             for part in metadata[name]['subsets'][subset]['partitions']:
                 metadata[name]['subsets'][subset]['partitions'][part]['downloaded']=False
-        write_meta(metadata)
+        write_meta(root)
         print(f"[INFO] {metadata[name]['path']} deleted")
         return
 
@@ -143,12 +168,13 @@ def remove(name, subset=None, force_remove=False):
     metadata[name]['subsets'][subset]['downloaded']=0
     for part in metadata[name]['subsets'][subset]['partitions']:
         metadata[name]['subsets'][subset]['partitions'][part]['downloaded']=False
-    write_meta(metadata)
+    write_meta(root)
     print(f"[INFO] {metadata[name]['subsets'][subset]['path']} deleted")
 
 
 def download(name, subset=None, partitions=None, force_redownload=False):
-    metadata = load_meta()
+    root = load_meta()
+    metadata = root["datasets"]
     os.makedirs(DATA_DIR,exist_ok=True)
     os.makedirs(CACHE_DIR,exist_ok=True)
 
@@ -176,13 +202,14 @@ def download(name, subset=None, partitions=None, force_redownload=False):
             downloaded_path = data_cls.download(subset, part)
             data_info["partitions"][part]["downloaded"]=True
             data_info["downloaded"] = sum([1 if part["downloaded"] else 0 for part in data_info["partitions"].values()])
-            write_meta(metadata)
+            write_meta(root)
 
     print("[INFO] downloading complete.")
 
 def load_dataset(name, subset=None, partitions=None, downloaded_only=False, **kwargs):
     filepaths = []
-    metadata = load_meta()
+    root = load_meta()
+    metadata = root["datasets"]
     os.makedirs(DATA_DIR,exist_ok=True)
     os.makedirs(CACHE_DIR,exist_ok=True)
 
@@ -215,7 +242,7 @@ def load_dataset(name, subset=None, partitions=None, downloaded_only=False, **kw
                 data_cls.download(subset, part)
                 data_info["partitions"][part]["downloaded"]=True
                 data_info["downloaded"]+=1
-                write_meta(metadata)
+                write_meta(root)
                 print("[INFO] metadata file updated.")
 
         # load

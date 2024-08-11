@@ -2,6 +2,37 @@
 This script serves as a registry for all dataset classes
 rlsn 2024
 """
+
+
+
+def dataset_struct(path="",source="",description="",modality=[],subsets=dict(),**kargs):
+    return dict(
+        path=path,
+        source=source,
+        description=description,
+        modality=modality,
+        subsets=subsets,
+        **kargs
+        )
+
+def subset_struct(path="",downloaded=0,partitions=dict(),description="",formats=[],**kargs):
+    return dict(
+        path=path,
+        downloaded=downloaded,
+        description=description,
+        partitions=partitions,
+        formats=formats,
+        **kargs
+        )
+
+def partition_struct(path="",size=0,downloaded=False,**kargs):
+    return dict(
+        path=path,
+        size=size,
+        downloaded=downloaded,
+        **kargs
+        )
+
 class Dataset(object):
     _dataset_classes = {}
 
