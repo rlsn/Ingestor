@@ -25,10 +25,11 @@ def subset_struct(path="",downloaded=0,partitions=dict(),description="",formats=
         **kargs
         )
 
-def partition_struct(path="",size=0,downloaded=False,**kargs):
+def partition_struct(path="",size=0,n_samples=0,downloaded=False,**kargs):
     return dict(
         path=path,
         size=size,
+        n_samples=n_samples,
         downloaded=downloaded,
         **kargs
         )

@@ -5,7 +5,7 @@ A platform designed to seamlessly acquire, organize, and manage diverse datasets
 ### Install dependencies
 ```
 pip install -r requirements.txt
-python cli.py -h
+python .\run-gui.py
 ```
 The module can be used with terminal commands or Python APIs (more functionalities). For Python APIs use cases please refer to [this notebook](api_demo.ipynb).
 
@@ -58,6 +58,7 @@ File storage is chosen for its comparatively high cost efficiency, scalability, 
 
 The dataset info and storage status is tracked by a metadata file `metadata.json` for efficient reference and update.
 ### Dependencies
+- python >= 3.11
 - huggingface_hub: Provides native support for datasets hosted on Hugging Face, making it an ideal library for downloading.
 - pyarrow: Used to compress and extract parquet files, a data file format designed for efficient data storage and retrieval, compatible with pandas.
 - pandas: Used to load the text dataset into memory for downstream data consumers. It provides a handy API for data manipulation and access, as well as chunking and datatype adjustments for memory efficiency.

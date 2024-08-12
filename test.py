@@ -13,7 +13,7 @@ ingestor.list_subsets("wikimedia/wikipedia")
 ingestor.download("wikimedia/wikipedia", "20231101.ady", force_redownload=True)
 
 
-ds = ingestor.load_dataset("wikimedia/wikipedia", "20231101.ch", downloaded_only=False,)
+ds = ingestor.load_dataset("wikimedia/wikipedia", "20231101.ch", download_if_missing=False,)
 print(ds)
 
 ingestor.list_partitions("wikimedia/wikipedia", "20231101.ady")

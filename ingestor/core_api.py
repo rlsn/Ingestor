@@ -5,8 +5,10 @@ rlsn 2024
 import os, shutil
 import json
 import pandas as pd
+from typing import Generator
 from .dataset_wrapper import Dataset
 from .__init__ import DATA_DIR, META_PATH, CACHE_DIR, DEFAULT_SUBSET_NAME
+from .utils import compute_nsamples, load_parquets, load_parquets_in_batch, AttrDict
 
 def clear_cache():
     if os.path.exists(CACHE_DIR):
@@ -125,7 +127,7 @@ def list_partitions(name, subset=None, display=True):
     return partitions
 
 
-def remove(name, subset=None, force_remove=False):
+def remove(name, subset=None, partitions=[], force_remove=False):
     root = load_meta()
     metadata = root["datasets"]
 
@@ -133,6 +135,7 @@ def remove(name, subset=None, force_remove=False):
         raise Exception(f"[ERROR] dataset '{name}' not found.")
         
     if subset is None:
+        # remove dataset
         print(f"[WARNING] Subset is name not specified, you are about to remove all downloaded subsets from {name}.")
 
         if not force_remove:
@@ -155,24 +158,36 @@ def remove(name, subset=None, force_remove=False):
     if subset not in metadata[name]["subsets"]:
         raise Exception(f"[ERROR] subset '{subset}' not found in '{name}'.")
 
-    print(f"[WARNING] You are about to remove all downloaded data in {subset} from {name}.")
+    if len(partitions)<1:
+        # remove subset
+        print(f"[WARNING] You are about to remove all downloaded data in {subset} from {name}.")
 
-    if not force_remove:
-        prompt = input("[WARNING] Once deleted, they cannot be restored. type 'REMOVE' to confirm >")
-        if prompt.lower()!="remove":
-            print("[INFO] Deletion aborted")
-            return
-
-    shutil.rmtree(os.path.join(DATA_DIR, metadata[name]["subsets"][subset]["path"]), ignore_errors=True)
-    # update metadata
-    metadata[name]['subsets'][subset]['downloaded']=0
-    for part in metadata[name]['subsets'][subset]['partitions']:
-        metadata[name]['subsets'][subset]['partitions'][part]['downloaded']=False
+        if not force_remove:
+            prompt = input("[WARNING] Once deleted, they cannot be restored. type 'REMOVE' to confirm >")
+            if prompt.lower()!="remove":
+                print("[INFO] Deletion aborted")
+                return
+        info = metadata[name]["subsets"][subset]
+        shutil.rmtree(os.path.join(DATA_DIR, info["path"]), ignore_errors=True)
+        # update metadata
+        info['downloaded']=0
+        for part in info['partitions']:
+            info['partitions'][part]['downloaded']=False
+        write_meta(root)
+        print(f"[INFO] {info['path']} deleted")
+        return
+    
+    # remove partitions
+    for part in partitions:
+        info = metadata[name]["subsets"][subset]["partitions"][part]
+        shutil.rmtree(os.path.join(DATA_DIR, info["path"]), ignore_errors=True)
+        # update metadata
+        info['downloaded']=False
+        print(f"[INFO] {info['path']} deleted")
+    metadata[name]["subsets"][subset]["downloaded"]=sum([1 if p["downloaded"] else 0 for p in metadata[name]["subsets"][subset]["partitions"].values()])
     write_meta(root)
-    print(f"[INFO] {metadata[name]['subsets'][subset]['path']} deleted")
 
-
-def download(name, subset=None, partitions=None, force_redownload=False):
+def download(name:str, subset:str=None, partitions:list=None, force_redownload:bool=False)->None:
     root = load_meta()
     metadata = root["datasets"]
     os.makedirs(DATA_DIR,exist_ok=True)
@@ -197,16 +212,21 @@ def download(name, subset=None, partitions=None, force_redownload=False):
 
 
     for i, part in enumerate(partitions):
-        if not data_info["partitions"][part]["downloaded"] or force_redownload:
-            print(f"[INFO] [{i+1}/{len(partitions)}] downloading {part}")
+        info = data_info["partitions"][part]
+        if not info["downloaded"] or force_redownload:
+            print(f"[INFO] [{i+1}/{len(partitions)}] downloading {info['path']}")
             downloaded_path = data_cls.download(subset, part)
-            data_info["partitions"][part]["downloaded"]=True
-            data_info["downloaded"] = sum([1 if part["downloaded"] else 0 for part in data_info["partitions"].values()])
+            # update download info
+            info["downloaded"]=True
+            data_info["downloaded"] = sum([1 if p["downloaded"] else 0 for p in data_info["partitions"].values()])
+            # compute num samples
+            info["n_samples"] = compute_nsamples(downloaded_path)
+
             write_meta(root)
 
     print("[INFO] downloading complete.")
 
-def load_dataset(name, subset=None, partitions=None, downloaded_only=False, **kwargs):
+def get_filepaths(name, subset=None, partitions=None, download_if_missing=False):
     filepaths = []
     root = load_meta()
     metadata = root["datasets"]
@@ -229,27 +249,41 @@ def load_dataset(name, subset=None, partitions=None, downloaded_only=False, **kw
     if partitions is None:
         # default as all partitions
         partitions = list(data_info["partitions"].keys())
-    dataframes = []
-    for i, part in enumerate(partitions):
-        filepath = os.path.join(DATA_DIR, data_info["partitions"][part]["path"])
-        # download if needed
-        if not data_info["partitions"][part]["downloaded"]:
-            if downloaded_only:
-                # print(f"[WARNING] partition {part} is not downloaded and therefore skipped.")
+
+    tbd_parts = []
+    if not download_if_missing:
+        # print(f"[WARNING] partition {part} is not downloaded and therefore skipped.")
+        for part in partitions:
+            if not data_info["partitions"][part]["downloaded"]:
                 continue
-            else:
-                print(f"[INFO] [{i+1}/{len(partitions)}] downloading {part}")
-                data_cls.download(subset, part)
-                data_info["partitions"][part]["downloaded"]=True
-                data_info["downloaded"]+=1
-                write_meta(root)
-                print("[INFO] metadata file updated.")
+            tbd_parts.append(part)
+    else:
+        tbd_parts = partitions
 
-        # load
-        dataframes.append(data_cls.load_partition(filepath))
-        
-    if len(dataframes)==0:
+    download(name, subset, tbd_parts)
+    filepaths = [os.path.join(DATA_DIR, data_info["partitions"][part]["path"]) for part in tbd_parts]
+    return filepaths
+
+def load_dataset(name:str, subset:str=None, partitions:list=None, download_if_missing:bool=False, **kwargs)->pd.DataFrame:
+    
+    filepaths = get_filepaths(name, subset, partitions, download_if_missing)
+
+    if len(filepaths)==0:
         return []
-
-    data = pd.concat(dataframes, axis=0)
+    
+    data = load_parquets(filepaths)
     return data
+
+def stream_dataset(name:str, subset:str=None, partitions:list=None, download_if_missing:bool=False, batch_size:int=16, preprocess:bool=False)->Generator[pd.DataFrame,None,None]:
+
+    filepaths = get_filepaths(name, subset, partitions, download_if_missing)
+
+    if len(filepaths)==0:
+        yield []
+
+    if batch_size>0:
+        batches = load_parquets_in_batch(filepaths, batchsize=batch_size)
+        yield from batches
+
+def process_samples(name:str, samples:pd.DataFrame)->AttrDict:
+    return Dataset.get(name).process_samples(samples)

@@ -9,7 +9,7 @@ from huggingface_hub import hf_hub_download, list_repo_tree
 from huggingface_hub.hf_api import RepoFolder
 from ..dataset_wrapper import Dataset, dataset_struct, subset_struct, partition_struct
 from ..__init__ import DATA_DIR, CACHE_DIR, AUTO_CLEAR_CACHE
-
+from ..utils import compute_nsamples, AttrDict
 
 @Dataset.register('wikimedia/wikipedia')
 class WikipediaDataset(object):
@@ -36,11 +36,13 @@ class WikipediaDataset(object):
                 print(f"retrieving info from {subs.path}")
             for part in list_repo_tree(WikipediaDataset.namespace,path_in_repo=subs.path, repo_type="dataset", expand=True):
                 path = os.path.join(WikipediaDataset.namespace, part.path)
-                downloaded = os.path.exists(os.path.join(DATA_DIR,path))
+                download_path = os.path.join(DATA_DIR,path)
+                downloaded = os.path.exists(download_path)
                 meta["subsets"][subs.path]["partitions"][os.path.basename(part.path)]=partition_struct(
                     path=path,
                     size=part.size,
-                    downloaded=downloaded
+                    downloaded=downloaded,
+                    n_samples=compute_nsamples(download_path) if downloaded else 0
                 )
                 meta["subsets"][subs.path]["downloaded"] += 1 if downloaded else 0
         return meta
@@ -58,8 +60,11 @@ class WikipediaDataset(object):
             from ..core_api import clear_cache
             clear_cache()
         return filepath
-        
+
     @staticmethod
-    def load_partition(path):
-        data = pd.read_parquet(path, engine='pyarrow')
+    def process_samples(samples:pd.DataFrame)->AttrDict:
+        data = AttrDict([(col,[]) for col in samples.columns])
+        for row in samples.itertuples():
+            for col in samples.columns:
+                data[col].append(getattr(row, col))
         return data
