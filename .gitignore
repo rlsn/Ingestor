@@ -2,7 +2,6 @@
 /cache/*
 */__pycache__
 /.ipynb_checkpoints
-/ingestor/dataset_classes/__pycache__
 /__pycache__
-/ingestor/datasets/__pycache__
-/ingestor/gui/__pycache__
+/pygestor/gui/__pycache__
+/pygestor/datasets/__pycache__

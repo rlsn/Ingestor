@@ -5,10 +5,10 @@ rlsn 2024
 import pyperclip
 from nicegui import ui
 import asyncio
-from ingestor import load_meta, DATA_DIR, download, remove, stream_dataset, process_samples
-from ingestor.utils import read_schema, AttrDict
-from ingestor.gui.infoview import *
-from ingestor.gui.gui_utils import stream_load_code_snipet, full_load_code_snipet
+from pygestor import load_meta, DATA_DIR, download, remove, stream_dataset, process_samples
+from pygestor.utils import read_schema, AttrDict
+from pygestor.gui.infoview import *
+from pygestor.gui.gui_utils import stream_load_code_snipet, full_load_code_snipet
 
 title_style = 'color: black; font-size: 180%; font-weight: bold; '
 n_preview_samples = 20

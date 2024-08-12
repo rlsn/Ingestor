@@ -4,8 +4,8 @@ rlsn 2024
 """
 import os
 from nicegui import ui
-from ingestor import write_meta, DATA_DIR
-from ingestor.utils import compute_subset_download, compute_subset_n_samples, compute_subset_size
+from pygestor import write_meta, DATA_DIR
+from pygestor.utils import compute_subset_download, compute_subset_n_samples, compute_subset_size
 
 def show_dataset_info_list(views, metadata, name):
     info = metadata["datasets"][name]

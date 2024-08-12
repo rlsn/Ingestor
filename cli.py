@@ -4,7 +4,7 @@ This script runs the ingestor module in command line.
 rlsn 2024
 """
 import argparse
-import ingestor
+import pygestor
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
@@ -19,18 +19,18 @@ if __name__=="__main__":
     args = parser.parse_args()
 
     if args.initialize:
-        ingestor.initialize(args.dataset_name, verbose=True)
+        pygestor.initialize(args.dataset_name, verbose=True)
 
     elif args.list:
         if args.dataset_name is not None and args.subset_name is not None:
-            ingestor.list_partitions(args.dataset_name, args.subset_name)
+            pygestor.list_partitions(args.dataset_name, args.subset_name)
         elif args.dataset_name is not None:
-            ingestor.list_subsets(args.dataset_name)
+            pygestor.list_subsets(args.dataset_name)
         else:
-            ingestor.list_datasets()
+            pygestor.list_datasets()
     
     elif args.download:
-        ingestor.download(args.dataset_name, args.subset_name)
+        pygestor.download(args.dataset_name, args.subset_name)
 
     elif args.remove:
-        ingestor.remove(args.dataset_name, args.subset_name)
+        pygestor.remove(args.dataset_name, args.subset_name)

@@ -3,7 +3,7 @@ This script runs the gui server
 rlsn 2024
 """
 from nicegui import ui
-import ingestor.gui.dataviewer as dataviewer
+import pygestor.gui.dataviewer as dataviewer
 ui.page_title('Ingestor')
 
 with ui.header(elevated=True).style('background-color: bg-blue-100').classes('items-center justify-between px-3 py-1 gap-0'):

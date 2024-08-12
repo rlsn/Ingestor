@@ -4,9 +4,9 @@ and the first 10 parquet files of wikimedia/wit_base
 
 rlsn 2024
 """
-import ingestor
+import pygestor
 
-ingestor.download("wikimedia/wikipedia", "20231101.en", force_redownload=False)
+pygestor.download("wikimedia/wikipedia", "20231101.en", force_redownload=False)
 
-parts = ingestor.list_partitions("wikimedia/wit_base", "data", False)[:10]
-ingestor.download("wikimedia/wit_base", "data", partitions=parts, force_redownload=False)
+parts = pygestor.list_partitions("wikimedia/wit_base", "data", False)[:10]
+pygestor.download("wikimedia/wit_base", "data", partitions=parts, force_redownload=False)
