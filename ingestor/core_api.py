@@ -8,7 +8,7 @@ import pandas as pd
 from typing import Generator
 from .dataset_wrapper import Dataset
 from .__init__ import DATA_DIR, META_PATH, CACHE_DIR, DEFAULT_SUBSET_NAME
-from .utils import AttrDict, compute_nsamples, load_parquets, load_parquets_in_batch, compute_subset_download, compute_subset_size
+from .utils import AttrDict, compute_nsamples, load_parquets, load_parquets_in_batch, compute_subset_download, compute_subset_size, normpath
 
 def clear_cache():
     if os.path.exists(CACHE_DIR):
@@ -147,7 +147,7 @@ def remove(name, subset=None, partitions=[], force_remove=False):
                 print("[INFO] Deletion aborted")
                 return
 
-        shutil.rmtree(os.path.normpath(os.path.join(DATA_DIR, metadata[name]["path"])), ignore_errors=True)
+        shutil.rmtree(normpath(os.path.join(DATA_DIR, metadata[name]["path"])), ignore_errors=True)
 
         # update metadata
         for subset in metadata[name]['subsets']:
@@ -172,7 +172,7 @@ def remove(name, subset=None, partitions=[], force_remove=False):
                 print("[INFO] Deletion aborted")
                 return
         info = metadata[name]["subsets"][subset]
-        shutil.rmtree(os.path.normpath(os.path.join(DATA_DIR, info["path"])), ignore_errors=True)
+        shutil.rmtree(normpath(os.path.join(DATA_DIR, info["path"])), ignore_errors=True)
         # update metadata
         for part in info['partitions']:
             info['partitions'][part]['downloaded']=False
@@ -184,7 +184,7 @@ def remove(name, subset=None, partitions=[], force_remove=False):
     # remove partitions
     for part in partitions:
         info = metadata[name]["subsets"][subset]["partitions"][part]
-        shutil.rmtree(os.path.normpath(os.path.join(DATA_DIR, info["path"])), ignore_errors=True)
+        shutil.rmtree(normpath(os.path.join(DATA_DIR, info["path"])), ignore_errors=True)
         # update metadata
         info['downloaded']=False
         info['n_samples']=0
@@ -265,7 +265,7 @@ def get_filepaths(name, subset=None, partitions=None, download_if_missing=False)
         tbd_parts = partitions
 
     download(name, subset, tbd_parts)
-    filepaths = [os.path.normpath(os.path.join(DATA_DIR, data_info["partitions"][part]["path"])) for part in tbd_parts]
+    filepaths = [normpath(os.path.join(DATA_DIR, data_info["partitions"][part]["path"])) for part in tbd_parts]
     return filepaths
 
 def load_dataset(name:str, subset:str=None, partitions:list=None, download_if_missing:bool=False, **kwargs)->pd.DataFrame:

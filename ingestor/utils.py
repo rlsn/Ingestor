@@ -2,10 +2,14 @@
 This script contains utils functions for the backend module
 rlsn 2024
 """
+import os
+import pandas as pd
 import pyarrow.parquet as pq
 from pyarrow.dataset import dataset
 from pyarrow.parquet import ParquetDataset
-import pandas as pd
+
+def normpath(path):
+    return os.path.normpath(path).replace('\\','/')
 
 def compute_subset_download(subs):
     return sum([1 if part['downloaded'] else 0 for part in subs["partitions"].values()])
