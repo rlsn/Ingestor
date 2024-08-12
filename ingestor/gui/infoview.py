@@ -5,6 +5,7 @@ rlsn 2024
 import os
 from nicegui import ui
 from ingestor import write_meta, DATA_DIR
+from ingestor.utils import compute_subset_download, compute_subset_n_samples, compute_subset_size
 
 def show_dataset_info_list(views, metadata, name):
     info = metadata["datasets"][name]
@@ -54,11 +55,11 @@ def show_subset_info_list(views, metadata, path):
         ui.label("Subset")
         ui.label(subs)
         ui.label("Size (MB)")
-        ui.label(round(sum([part['size'] for part in info["partitions"].values()])/1e6,3))
+        ui.label(round(compute_subset_size(info)/1e6,3))
         ui.label("Samples")
-        ui.label(sum([part['n_samples'] for part in info["partitions"].values()]))
+        ui.label(compute_subset_n_samples(info))
         ui.label("Downloaded")
-        ui.label(info["downloaded"])
+        ui.label(compute_subset_download(info))
         ui.label("Partitions")
         ui.label(len(info["partitions"]))
         ui.label("Download Path")
@@ -83,7 +84,7 @@ def show_partition_info_list(metadata, path):
         ui.label("Size (MB)")
         ui.label(round(info["size"]/1e6,3))
         ui.label("Samples")
-        ui.label(info["n_samples"] if info["n_samples"]>0 else "Unknown")
+        ui.label(info["n_samples"])
         ui.label("Downloaded")
         ui.label('Yes' if info["downloaded"] else 'No')
         ui.label("Download Path")

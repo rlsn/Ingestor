@@ -13,10 +13,9 @@ def dataset_struct(path="",source="",description="",modality=[],subsets=dict(),*
         **kargs
         )
 
-def subset_struct(path="",downloaded=0,partitions=dict(),description="",formats=[],**kargs):
+def subset_struct(path="",partitions=dict(),description="",formats=[],**kargs):
     return dict(
         path=path,
-        downloaded=downloaded,
         description=description,
         partitions=partitions,
         formats=formats,
@@ -49,4 +48,4 @@ class Dataset(object):
             return wrapped_class
         return inner_wrapper
     
-from .dataset_classes import *
+from .datasets import *

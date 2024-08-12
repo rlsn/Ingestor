@@ -7,6 +7,15 @@ from pyarrow.dataset import dataset
 from pyarrow.parquet import ParquetDataset
 import pandas as pd
 
+def compute_subset_download(subs):
+    return sum([1 if part['downloaded'] else 0 for part in subs["partitions"].values()])
+
+def compute_subset_n_samples(subs):
+    return sum([part['n_samples'] for part in subs["partitions"].values()])
+
+def compute_subset_size(subs):
+    return sum([part['size'] for part in subs["partitions"].values()])
+
 def compute_nsamples(parquet):
     dataset = ParquetDataset(parquet)
     n_samples = sum(p.count_rows() for p in dataset.fragments)

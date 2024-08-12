@@ -7,8 +7,8 @@ from nicegui import ui
 import asyncio
 from ingestor import load_meta, DATA_DIR, download, remove, stream_dataset, process_samples
 from ingestor.utils import read_schema, AttrDict
-from gui.infoview import *
-from gui.gui_utils import stream_load_code_snipet, full_load_code_snipet
+from ingestor.gui.infoview import *
+from ingestor.gui.gui_utils import stream_load_code_snipet, full_load_code_snipet
 
 title_style = 'color: black; font-size: 180%; font-weight: bold; '
 n_preview_samples = 20
@@ -54,11 +54,11 @@ def subset_table(metadata):
         if _search_value[0]!="" and _search_value[0] not in subs:
             continue
         info = metadata["subsets"][subs]
-        downloaded = info["downloaded"]
+        downloaded = compute_subset_download(info)
         parts = info['partitions']
         rows.append({
             'name': subs, 
-            'size': round(sum([part['size'] for part in parts.values()])/1e6,3),
+            'size': round(compute_subset_size(info)/1e6,3),
             'downloaded': downloaded,
             'partitions': len(parts),
             'desc': info["description"],

@@ -8,7 +8,7 @@ import pandas as pd
 from typing import Generator
 from .dataset_wrapper import Dataset
 from .__init__ import DATA_DIR, META_PATH, CACHE_DIR, DEFAULT_SUBSET_NAME
-from .utils import compute_nsamples, load_parquets, load_parquets_in_batch, AttrDict
+from .utils import AttrDict, compute_nsamples, load_parquets, load_parquets_in_batch, compute_subset_download, compute_subset_size
 
 def clear_cache():
     if os.path.exists(CACHE_DIR):
@@ -95,9 +95,10 @@ def list_subsets(name, display=True):
         print(f"dataset name: {name}\n{'subsets':^25}|{'downloaded partitions':^25}|{'size(MB)':^10}|path")
         for subs in subsets:
             info = metadata[name]["subsets"][subs]
-            downloaded = str(info['downloaded'])+'/'+str(len(info['partitions']))
-            size = sum([part['size'] for part in info['partitions'].values()])/1e6
-            print(f"{subs:<25}|{downloaded:^25}|{size:<10.2f}|{info['path'] if info['downloaded']>0 else ''}")
+            downloaded = compute_subset_download(info)
+            downloaded_str = str(compute_subset_download(info))+'/'+str(len(info['partitions']))
+            size = compute_subset_size(info)/1e6
+            print(f"{subs:<25}|{downloaded_str:^25}|{size:<10.2f}|{info['path'] if downloaded>0 else ''}")
     return subsets
 
 def list_partitions(name, subset=None, display=True):
@@ -114,14 +115,16 @@ def list_partitions(name, subset=None, display=True):
     if subset not in metadata[name]["subsets"]:
         raise Exception(f"[ERROR] subset {subset} not found in {name}.")
     
-    partitions = sorted(list(metadata[name]["subsets"][subset]["partitions"]))
+    subs_info = metadata[name]['subsets'][subset]
+    partitions = sorted(list(subs_info["partitions"]))
 
     if display:
         print(f"dataset name: {name}\nsubset name: {subset}")
-        print(f"downloaded: {metadata[name]['subsets'][subset]['downloaded']}/{len(metadata[name]['subsets'][subset]['partitions'])}")
+        downloaded = compute_subset_download(subs_info)
+        print(f"downloaded: {downloaded}/{len(subs_info['partitions'])}")
         print(f"{'partition':^30}|{'downloaded':^15}|{'size(MB)':^10}|path")
         for part in partitions:
-            info = metadata[name]["subsets"][subset]["partitions"][part]
+            info = subs_info["partitions"][part]
             print(f"{part:<30}|{'✔' if info['downloaded'] else 'X':^15}|{info['size']/1e6:<10.3f}|{info['path'] if info['downloaded'] else ''}")
         
     return partitions
@@ -148,9 +151,10 @@ def remove(name, subset=None, partitions=[], force_remove=False):
 
         # update metadata
         for subset in metadata[name]['subsets']:
-            metadata[name]['subsets'][subset]['downloaded']=0
             for part in metadata[name]['subsets'][subset]['partitions']:
                 metadata[name]['subsets'][subset]['partitions'][part]['downloaded']=False
+                metadata[name]['subsets'][subset]['partitions'][part]['n_samples']=0
+
         write_meta(root)
         print(f"[INFO] {metadata[name]['path']} deleted")
         return
@@ -170,9 +174,9 @@ def remove(name, subset=None, partitions=[], force_remove=False):
         info = metadata[name]["subsets"][subset]
         shutil.rmtree(os.path.join(DATA_DIR, info["path"]), ignore_errors=True)
         # update metadata
-        info['downloaded']=0
         for part in info['partitions']:
             info['partitions'][part]['downloaded']=False
+            info['partitions'][part]['n_samples']=0
         write_meta(root)
         print(f"[INFO] {info['path']} deleted")
         return
@@ -183,8 +187,8 @@ def remove(name, subset=None, partitions=[], force_remove=False):
         shutil.rmtree(os.path.join(DATA_DIR, info["path"]), ignore_errors=True)
         # update metadata
         info['downloaded']=False
+        info['n_samples']=0
         print(f"[INFO] {info['path']} deleted")
-    metadata[name]["subsets"][subset]["downloaded"]=sum([1 if p["downloaded"] else 0 for p in metadata[name]["subsets"][subset]["partitions"].values()])
     write_meta(root)
 
 def download(name:str, subset:str=None, partitions:list=None, force_redownload:bool=False)->None:
@@ -218,7 +222,7 @@ def download(name:str, subset:str=None, partitions:list=None, force_redownload:b
             downloaded_path = data_cls.download(subset, part)
             # update download info
             info["downloaded"]=True
-            data_info["downloaded"] = sum([1 if p["downloaded"] else 0 for p in data_info["partitions"].values()])
+            data_info["downloaded"] = compute_subset_download(data_info)
             # compute num samples
             info["n_samples"] = compute_nsamples(downloaded_path)
 
