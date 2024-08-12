@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='MyPackageName',
+    name='pygestor',
     version='0.1.0',
     url='https://github.com/rlsn/Ingestor',
     author='Yumo Wang',
