@@ -1,4 +1,4 @@
-# Ingestor
+# Pygestor
 A platform designed to seamlessly acquire, organize, and manage diverse datasets, offering AI researchers a one-line downloader and data-loader for quick access to data, while providing a scalable and easily manageable system for future dataset acquisition.
 
 [![Python application](https://github.com/rlsn/Ingestor/actions/workflows/python-app.yml/badge.svg)](https://github.com/rlsn/Ingestor/actions/workflows/python-app.yml)
@@ -12,7 +12,7 @@ python .\run-gui.py
 The module can be used with terminal commands or Python APIs (more functionalities). For Python APIs use cases please refer to [this notebook](api_demo.ipynb).
 
 ### Configurations
-Edit [`ingestor/__init__.py`](ingestor/__init__.py) to change the default system settings. In particular, set `DATA_DIR` to the desired data storage location, either a local path or a remote path, such as a mounted NFS.
+Edit [`pygestor/__init__.py`](pygestor/__init__.py) to change the default system settings. In particular, set `DATA_DIR` to the desired data storage location, either a local path or a remote path, such as a mounted NFS.
 
 ### Data info and availability
 To list support datasets: 
@@ -32,14 +32,14 @@ To download a specific subset:
 ```
 python cli.py -l -d <dataset_name> -s <subset_name>
 ```
-To download specific partitions, use Python API `ingestor.download()`.
+To download specific partitions, use Python API `pygestor.download()`.
 
 To remove downloaded data files in a subset:
 ```
 python cli.py -r -d <dataset_name> -s <subset_name>
 ```
 
-**To support a new dataset, add a new class file to [`ingestor/dataset_classes`](ingestor/dataset_classes) that defines how to organize, download and load data, following the example in [`ingestor/dataset_classes/wikipedia.py`](ingestor/dataset_classes/wikipedia.py). Then update the metadata by running `python cli.py -init -d <new_dataset_name>`**
+**To support a new dataset, add a new class file to [`pygestor/datasets`](pygestor/datasets) that defines how to organize, download and load data, following the example in [`pygestor/datasets/wikipedia.py`](pygestor/datasets/wikipedia.py). Then update the metadata by running `python cli.py -init -d <new_dataset_name>`**
 
 
 ## Technical Details
