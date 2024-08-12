@@ -1,3 +1,7 @@
+"""
+This script contains functions for main display
+rlsn 2024
+"""
 import pyperclip
 from nicegui import ui
 import asyncio

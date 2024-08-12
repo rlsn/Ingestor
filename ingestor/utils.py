@@ -1,3 +1,7 @@
+"""
+This script contains utils functions for the backend module
+rlsn 2024
+"""
 import pyarrow.parquet as pq
 from pyarrow.dataset import dataset
 from pyarrow.parquet import ParquetDataset

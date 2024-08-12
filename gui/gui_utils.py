@@ -1,3 +1,7 @@
+"""
+This script contains utils functions for the gui module
+rlsn 2024
+"""
 def stream_load_code_snipet(name, subs, parts=[]):
     code = f'import ingestor\n\nbatches = ingestor.stream_dataset("{name}", "{subs}"'
     if len(parts)>0:

@@ -1,3 +1,7 @@
+"""
+This script runs the gui server
+rlsn 2024
+"""
 from nicegui import ui
 import gui.dataviewer as dataviewer
 ui.page_title('Ingestor')

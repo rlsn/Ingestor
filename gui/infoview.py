@@ -1,3 +1,7 @@
+"""
+This script contains functions for infoview display
+rlsn 2024
+"""
 import os
 from nicegui import ui
 from ingestor import write_meta, DATA_DIR

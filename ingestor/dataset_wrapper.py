@@ -3,8 +3,6 @@ This script serves as a registry for all dataset classes
 rlsn 2024
 """
 
-
-
 def dataset_struct(path="",source="",description="",modality=[],subsets=dict(),**kargs):
     return dict(
         path=path,
