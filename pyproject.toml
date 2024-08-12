@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ingestor"
+version = "0.1.0"
+dependencies = [
+    'pyarrow >= 17.0.0',
+    'huggingface-hub>=0.24.5',
+    'pillow>=10.4.0',
+    'nicegui>=1.4.34',
+    'pyperclip>=1.9.0'
+]
+requires-python = ">=3.11"
+authors = [
+  {name = "Yumo Wang", email = "yumo1996@gmail.com"},
+]
+maintainers = [
+  {name = "Yumo Wang", email = "yumo1996@gmail.com"}
+]
+description = "A tool for dataset ingestion and management."
+readme = "README.md"
+license = {file = "LICENSE.md"}
+keywords = ["dataset", "ingestion", "management", "machine learning"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3.11",
+  "Intended Audience :: Developers",
+  "Topic :: AI Development :: Data Management Tools",
+]
+
+[project.optional-dependencies]
+gui = ["nicegui"]
+cli = [
+]
+
+[project.urls]
+Homepage = "https://github.com/rlsn/Ingestor"
+Documentation = "https://github.com/rlsn/Ingestor"
+Repository = "https://github.com/rlsn/Ingestor.git"
+"Bug Tracker" = "https://github.com/rlsn/Ingestor/issues"
+Changelog = "https://github.com/rlsn/Ingestor"
+
+[project.scripts]
+ingestor-cli = "ingestor:cli"
+
+[project.gui-scripts]
+ingestor-gui = "ingestor:run-gui"
