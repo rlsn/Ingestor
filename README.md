@@ -10,15 +10,23 @@ A platform designed to seamlessly acquire, organize, and manage diverse datasets
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Quick Start
-### Install dependencies
+### Installation
 ```
 pip install -r requirements.txt
-python .\run-gui.py
+```
+or
+```
+pip install pygestor
 ```
 The module can be used with a GUI, terminal commands or Python APIs (more functionalities). For Python APIs use cases please refer to [this notebook](api_demo.ipynb).
 
 ### Configurations
 Edit [`pygestor/__init__.py`](pygestor/__init__.py) to change the default system settings. In particular, set `DATA_DIR` to the desired data storage location, either a local path or a remote path, such as a mounted NFS.
+
+### Run GUI
+```
+python .\run-gui.py
+```
 
 ### Data info and availability
 To list support datasets: 
