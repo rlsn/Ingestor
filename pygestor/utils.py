@@ -40,7 +40,18 @@ def load_parquets(parquets):
     data = pd.concat(dataframes, axis=0)
     return data
 
+import json
 class AttrDict(dict):
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
+
+    def to_json(self, filename):
+        with open(filename, "w") as wf:
+            wf.write(json.dumps(self, indent=4))
+
+    @classmethod
+    def from_json(cls, filename):
+        with open(filename, "r") as f:
+            obj = cls(json.loads(f.read()))
+        return obj

@@ -69,7 +69,7 @@ class WitbaseDataset(object):
                     img = Image.open(io.BytesIO(getattr(row, col)['bytes']))
                     if type(img)!=JpegImageFile:
                         with io.BytesIO() as b:
-                            img.save(b, format="jpeg")
+                            img.convert('RGB').save(b, format="jpeg")
                             img = Image.open(b)
                             img.load()
                     data[col].append(img)

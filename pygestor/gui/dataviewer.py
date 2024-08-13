@@ -9,9 +9,9 @@ from pygestor import load_meta, DATA_DIR, download, remove, stream_dataset, proc
 from pygestor.utils import read_schema, AttrDict
 from pygestor.gui.infoview import *
 from pygestor.gui.gui_utils import stream_load_code_snipet, full_load_code_snipet
+from pygestor.gui import gui_config
 
-title_style = 'color: black; font-size: 180%; font-weight: bold; '
-n_preview_samples = 20
+_title_style = 'color: black; font-size: 180%; font-weight: bold; '
 _path = [None, None]
 _search_value = [""]
 _multi_sel = []
@@ -232,7 +232,7 @@ def show_partitions(views, metadata):
     with dataview:
         with ui.row():
             backbutton = ui.button(icon="arrow_back", on_click=lambda: on_click_back(views, metadata))
-            ui.label(f"> {name} > {subs}").style(title_style)
+            ui.label(f"> {name} > {subs}").style(_title_style)
         table = ui.table(columns=columns, rows=rows, 
                          row_key='name',
                          pagination={'rowsPerPage': 10, 'sortBy': 'downloaded', 'descending':True, 'page': 1}
@@ -252,9 +252,10 @@ def show_schema(views, metadata, path):
     download_path = os.path.abspath(os.path.join(DATA_DIR, info["path"]))
     parquet_file = glob.glob(download_path+"/*")[0]
     schema = read_schema(parquet_file)
+    datastream = iter(stream_dataset(name, subs, download_if_missing=False, 
+                                     batch_size = gui_config.n_preview_samples))
+    batch = [process_samples(name, next(datastream))]
 
-    batch = iter(stream_dataset(name, subs, download_if_missing=False,batch_size=n_preview_samples)).__next__()
-    processed_batch = process_samples(name, batch)
     def on_click_sample(index):
         iloc = AttrDict(value=1)
         sample_content.clear()
@@ -272,20 +273,27 @@ def show_schema(views, metadata, path):
                 ui.label("Sample").style('font-weight: bold')
                 for field in fields:
                     ui.label(field)
-                    sample = processed_batch[field][iloc.value-1]
+                    sample = batch[0][field][iloc.value-1]
                     if type(sample)==JpegImageFile:
                         ui.image(sample).classes('w-[300px]')
                     else:
                         ui.label(str(sample))
+
+        def next_batch():
+            batch[0] = process_samples(name, next(datastream))
+            fill_content()
+
         with sample_content:
             with ui.scroll_area().classes('w-full h-[500px]'):
                 gridview = ui.grid(columns="auto 1fr").classes('w-full no-wrap')
-            with ui.row().classes('w-full items-center no-wrap h-auto p-3'):
+            with ui.row().classes('w-full items-top no-wrap h-auto p-1'):
                 ui.select(schema.names, multiple=True, 
                           value=[schema.names[i] for i in field_ids], label='fields',
                           on_change=lambda e:fill_content(e.value)).classes('w-1/3').props('use-chips')
-                ui.slider(min=1, max=n_preview_samples, on_change=fill_content).bind_value(iloc, 'value').classes('w-1/2 px-2 py-0')
-                ui.number(min=1, max=n_preview_samples).bind_value(iloc, 'value').classes('px-2 py-0')
+                with ui.row().classes('w-2/3 items-center no-wrap h-auto p-3'):
+                    ui.slider(min=1, max=gui_config.n_preview_samples, on_change=fill_content).bind_value(iloc, 'value').classes('w-2/3 px-2 py-0')
+                    ui.number(min=1, max=gui_config.n_preview_samples).bind_value(iloc, 'value').classes('px-2 py-0')
+                    ui.button(icon='refresh',on_click=next_batch).classes('p-3')
 
         sampleview.open()
 
@@ -424,7 +432,7 @@ def show_subsets(views, metadata, path=None):
     with dataview:
         with ui.row():
             backbutton = ui.button(icon="arrow_back", on_click=lambda: on_click_back(views, metadata))
-            ui.label(f"> {name}").style(title_style)
+            ui.label(f"> {name}").style(_title_style)
         table = ui.table(columns=columns, rows=rows, 
                          row_key='name',
                          pagination={'rowsPerPage': 10, 'sortBy': 'downloaded', 'descending':True, 'page': 1}

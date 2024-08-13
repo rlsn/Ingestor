@@ -9,6 +9,23 @@ A platform designed to seamlessly acquire, organize, and manage diverse datasets
 ![PyPI - Version](https://img.shields.io/pypi/v/pygestor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## Key Features
+- Dataset Acquisition:
+     - Support for downloading and loading datasets with a simple one-line command.
+     - Automatic handling of subsets and partitions for efficient data storage and access.
+
+- Data Organization:
+    - Three-level data organization structure: dataset, subset, and partition.
+    - Support for both local and network file systems for data storage.
+    - Efficient handling of large files by allowing batched loading.
+
+- Graphic User Interface
+    - Introduced a Web-GUI for intuitive data management and analysis.
+    - Support for viewing schema, metadata and data samples.
+    - Ability to download and remove one subset or multiple partitions in one go.
+    - Support for data searching and sorting.
+    - Ability to generate code snippets for quick access to datasets.
+
 ## Quick Start
 ### Installation
 ```
