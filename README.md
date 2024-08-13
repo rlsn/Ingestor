@@ -1,6 +1,6 @@
 # Pygestor
 A data interface designed to seamlessly acquire, organize, and manage diverse datasets, offering AI researchers a one-line downloader and data-loader for quick access to data, while providing a scalable and easily manageable system for future dataset acquisition.
-
+<img src = "imgs/ui.png" width ="80%" />
 [![Python application](https://github.com/rlsn/Ingestor/actions/workflows/python-app.yml/badge.svg)](https://github.com/rlsn/Ingestor/actions/workflows/python-app.yml)
 [![Publish Python Package](https://github.com/rlsn/Pygestor/actions/workflows/python-publish.yml/badge.svg)](https://github.com/rlsn/Pygestor/actions/workflows/python-publish.yml)
 ![GitHub deployments](https://img.shields.io/github/deployments/rlsn/Pygestor/pypi)
@@ -24,6 +24,8 @@ A data interface designed to seamlessly acquire, organize, and manage diverse da
     - Ability to download and remove one subset or multiple partitions in one go.
     - Support for data searching and sorting.
     - Ability to generate code snippets for quick access to datasets.
+
+ <img src = "imgs/snipet.png" width ="45%" /> <img src = "imgs/ui.png" width ="45%" />
 
 ## Quick Start
 ### Installation
