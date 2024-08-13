@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name='pygestor',
-    version='0.1.1',
-    url='https://github.com/rlsn/Ingestor',
+    version='0.1.2',
+    url='https://github.com/rlsn/Pygestor',
     author='Yumo Wang',
     author_email='yumo1996@gmail.com',
     description='A data platform designed to efficiently acquire, organize, and manage diverse datasets, ensuring seamless access and usability for AI researchers.',
