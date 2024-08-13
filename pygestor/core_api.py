@@ -191,7 +191,7 @@ def remove(name, subset=None, partitions=[], force_remove=False):
         print(f"[INFO] {info['path']} deleted")
     write_meta(root)
 
-def download(name:str, subset:str=None, partitions:list=None, force_redownload:bool=False)->None:
+def download(name:str, subset:str=None, partitions:list=None, force_redownload:bool=False, verbose:bool=True)->None:
     root = load_meta()
     metadata = root["datasets"]
     os.makedirs(DATA_DIR,exist_ok=True)
@@ -202,7 +202,8 @@ def download(name:str, subset:str=None, partitions:list=None, force_redownload:b
 
     if subset is None:
         subset = DEFAULT_SUBSET_NAME
-        print(f"[INFO] subset name not specified, using default name '{DEFAULT_SUBSET_NAME}'")
+        if verbose:
+            print(f"[INFO] subset name not specified, using default name '{DEFAULT_SUBSET_NAME}'")
 
     if subset not in metadata[name]["subsets"]:
         raise Exception(f"[ERROR] subset '{subset}' not found in '{name}'.")
@@ -217,7 +218,8 @@ def download(name:str, subset:str=None, partitions:list=None, force_redownload:b
 
     for i, part in enumerate(partitions):
         info = data_info["partitions"][part]
-        print(f"[INFO] [{i+1}/{len(partitions)}] downloading {info['path']}")
+        if verbose:
+            print(f"[INFO] [{i+1}/{len(partitions)}] downloading {info['path']}")
         if not info["downloaded"] or force_redownload:
             downloaded_path = data_cls.download(subset, part)
             # update download info
@@ -227,10 +229,10 @@ def download(name:str, subset:str=None, partitions:list=None, force_redownload:b
             info["n_samples"] = compute_nsamples(downloaded_path)
 
             write_meta(root)
+    if verbose:
+        print("[INFO] downloading complete.")
 
-    print("[INFO] downloading complete.")
-
-def get_filepaths(name, subset=None, partitions=None, download_if_missing=False):
+def get_filepaths(name, subset=None, partitions=None, download_if_missing=False, verbose:bool=False, **kargs):
     filepaths = []
     root = load_meta()
     metadata = root["datasets"]
@@ -242,7 +244,8 @@ def get_filepaths(name, subset=None, partitions=None, download_if_missing=False)
 
     if subset is None:
         subset = DEFAULT_SUBSET_NAME
-        print(f"[INFO] subset name not specified, using default name '{DEFAULT_SUBSET_NAME}'")
+        if verbose:
+            print(f"[INFO] subset name not specified, using default name '{DEFAULT_SUBSET_NAME}'")
 
     if subset not in metadata[name]["subsets"]:
         raise Exception(f"[ERROR] subset '{subset}' not found in '{name}'.")
@@ -264,13 +267,13 @@ def get_filepaths(name, subset=None, partitions=None, download_if_missing=False)
     else:
         tbd_parts = partitions
 
-    download(name, subset, tbd_parts)
+    download(name, subset, tbd_parts, verbose=verbose)
     filepaths = [normpath(os.path.join(DATA_DIR, data_info["partitions"][part]["path"])) for part in tbd_parts]
     return filepaths
 
 def load_dataset(name:str, subset:str=None, partitions:list=None, download_if_missing:bool=False, **kwargs)->pd.DataFrame:
     
-    filepaths = get_filepaths(name, subset, partitions, download_if_missing)
+    filepaths = get_filepaths(name, subset, partitions, download_if_missing, **kwargs)
 
     if len(filepaths)==0:
         return []
@@ -278,9 +281,9 @@ def load_dataset(name:str, subset:str=None, partitions:list=None, download_if_mi
     data = load_parquets(filepaths)
     return data
 
-def stream_dataset(name:str, subset:str=None, partitions:list=None, download_if_missing:bool=False, batch_size:int=16, preprocess:bool=False)->Generator[pd.DataFrame,None,None]:
+def stream_dataset(name:str, subset:str=None, partitions:list=None, download_if_missing:bool=False, batch_size:int=16, preprocess:bool=False, **kwargs)->Generator[pd.DataFrame,None,None]:
 
-    filepaths = get_filepaths(name, subset, partitions, download_if_missing)
+    filepaths = get_filepaths(name, subset, partitions, download_if_missing, **kwargs)
 
     if len(filepaths)==0:
         yield []

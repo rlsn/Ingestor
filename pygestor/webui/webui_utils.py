@@ -1,5 +1,5 @@
 """
-This script contains utils functions for the gui module
+This script contains utils functions for the webui module
 rlsn 2024
 """
 def stream_load_code_snipet(name, subs, parts=[]):

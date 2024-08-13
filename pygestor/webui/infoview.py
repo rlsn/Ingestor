@@ -16,7 +16,7 @@ def show_dataset_info_list(views, metadata, name):
         info["description"] = new_desc[0]
         write_meta(metadata)
         ui.notify("Change saved.")
-        from gui.dataviewer import show_datasets, show_dataset_info
+        from pygestor.webui.dataviewer import show_datasets, show_dataset_info
         show_datasets(views, metadata)
         show_dataset_info(views, metadata, name)
 
@@ -45,7 +45,7 @@ def show_subset_info_list(views, metadata, path):
         info["description"] = new_desc[0]
         write_meta(metadata)
         ui.notify("Change saved.")
-        from gui.dataviewer import show_subsets, show_subset_info
+        from pygestor.webui.dataviewer import show_subsets, show_subset_info
         show_subsets(views, metadata, name)
         show_subset_info(views, metadata, path)
 

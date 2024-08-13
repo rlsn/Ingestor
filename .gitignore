@@ -3,5 +3,5 @@
 */__pycache__
 /.ipynb_checkpoints
 /__pycache__
-/pygestor/gui/__pycache__
 /pygestor/datasets/__pycache__
+/pygestor/webui/__pycache__

@@ -55,3 +55,11 @@ class AttrDict(dict):
         with open(filename, "r") as f:
             obj = cls(json.loads(f.read()))
         return obj
+    
+class Mutable(object):
+    def __init__(self, v=None):
+        self.v = v
+    def set(self, v):
+        self.v = v
+    def get(self):
+        return self.v
