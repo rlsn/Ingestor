@@ -5,7 +5,7 @@ rlsn 2024
 from .core_api import *
 from .utils import AttrDict
 
-sys_config = AttrDict.from_json("./system.conf")
+sys_config = AttrDict.from_json("./confs/system.conf")
 CACHE_DIR = sys_config.cache_dir
 DATA_DIR = sys_config.data_dir
 META_PATH = sys_config.meta_path
