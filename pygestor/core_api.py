@@ -5,6 +5,7 @@ rlsn 2024
 import os, shutil
 import json
 import pandas as pd
+import time
 from typing import Generator
 from .dataset_wrapper import Dataset
 from .__init__ import DATA_DIR, META_PATH, CACHE_DIR, DEFAULT_SUBSET_NAME
@@ -175,8 +176,10 @@ def remove(name, subset=None, partitions=[], force_remove=False):
         shutil.rmtree(normpath(os.path.join(DATA_DIR, info["path"])), ignore_errors=True)
         # update metadata
         for part in info['partitions']:
-            info['partitions'][part]['downloaded']=False
-            info['partitions'][part]['n_samples']=0
+            part_info = info['partitions'][part]
+            part_info['downloaded']=False
+            part_info['n_samples']=0
+            part_info["acquisition_time"]=None
         write_meta(root)
         print(f"[INFO] {info['path']} deleted")
         return
@@ -227,7 +230,8 @@ def download(name:str, subset:str=None, partitions:list=None, force_redownload:b
             data_info["downloaded"] = compute_subset_download(data_info)
             # compute num samples
             info["n_samples"] = compute_nsamples(downloaded_path)
-
+            # timestamp
+            info["acquisition_time"] = time.time()
             write_meta(root)
     if verbose:
         print("[INFO] downloading complete.")

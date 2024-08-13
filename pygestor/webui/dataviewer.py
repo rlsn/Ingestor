@@ -8,14 +8,14 @@ import asyncio
 from pygestor import load_meta, DATA_DIR, download, remove, stream_dataset, process_samples
 from pygestor.utils import read_schema, AttrDict, Mutable
 from pygestor.webui.infoview import *
-from pygestor.webui.webui_utils import stream_load_code_snipet, full_load_code_snipet
+from pygestor.webui.webui_utils import stream_load_code_snippet, full_load_code_snippet
 from pygestor.webui import webui_config
 from pygestor.webui.styles import *
 
 _title_style = 'color: #646464; font-size: 180%; font-weight: bold; margin-left:50px;'
 _view_height = '750px'
 _info_list_classes = "w-full h-[1000px] px-0 py-0"
-_snipet_style = 'width: 800px; height: 600px; max-width: none; max-height: none'
+_snippet_style = 'width: 800px; height: 600px; max-width: none; max-height: none'
 _button_column_classes = 'w-3/4 items-center px-0 py-0 gap-2'
 
 def dataset_table(metadata):
@@ -128,7 +128,7 @@ def show_partition_info(views, metadata, path, selected_parts=[]):
                 ui.button('Yes', icon="delete", on_click=on_remove).classes('w-full').props(f'color=red')
                 ui.button('No', on_click=dialog.close).classes('w-full')
 
-        with ui.dialog() as snipet, ui.card().classes('items-center').style(_snipet_style):
+        with ui.dialog() as snippet, ui.card().classes('items-center').style(_snippet_style):
             tab_names = ['Stream', 'Full']
             codemirrors = []
             with ui.tabs().classes('w-full') as tabs:
@@ -137,24 +137,24 @@ def show_partition_info(views, metadata, path, selected_parts=[]):
             with ui.tab_panels(tabs, value=tab_names[0]).classes('w-full'):
                 with ui.tab_panel(tab_names[0]).classes('w-full'):
                     codemirrors[0] = ui.codemirror(
-                        stream_load_code_snipet(name,subs, 
+                        stream_load_code_snippet(name,subs, 
                                                 selected_parts if len(selected_parts)>0 else [part]),
                                               line_wrapping=True, language='Python').classes('h-full')
                 with ui.tab_panel(tab_names[1]).classes('w-full'):
                     codemirrors[1] = ui.codemirror(
-                        full_load_code_snipet(name,subs, 
+                        full_load_code_snippet(name,subs, 
                                               selected_parts if len(selected_parts)>0 else [part]), 
                                               line_wrapping=True, language='Python').classes('h-full')
             ui.button('Copy', 
                     on_click=lambda: (
                         pyperclip.copy(codemirrors[tab_names.index(tabs.value)].value),
                         ui.notify("Copied to clipboard"),
-                        snipet.close()
+                        snippet.close()
                     )).classes('w-2/3').style('position: absolute; bottom: 10px;')
             
 
         with ui.column().classes(_button_column_classes):
-            ui.button("Loader Snipet",icon="code", on_click=snipet.open).classes("w-full")
+            ui.button("Loader snippet",icon="code", on_click=snippet.open).classes("w-full")
             with ui.dropdown_button("Actions", icon="menu",auto_close=False).classes("w-full gap-0"):
                 download_button = ui.button("Download selected" if len(selected_parts)>0 else "Download", icon="download", on_click=on_download).classes("w-full").props(f'color={"green" if info["downloaded"] and len(selected_parts)==0 else ""}')
                 del_button=ui.button("Remove selected" if len(selected_parts)>0 else "Remove data", icon="delete", on_click=dialog.open).classes("w-full").props('color="red"')
@@ -333,7 +333,7 @@ def show_subset_info(views, metadata, path):
                 ui.button('No', on_click=dialog.close).classes('w-full')
 
         tab_names = ['Stream', 'Full']
-        with ui.dialog() as snipet, ui.card().classes('items-center').style(_snipet_style):
+        with ui.dialog() as snippet, ui.card().classes('items-center').style(_snippet_style):
             codemirrors = []
             with ui.tabs().classes('w-full') as tabs:
                 codemirrors.append(ui.tab(tab_names[0]).classes('w-full'))
@@ -341,25 +341,25 @@ def show_subset_info(views, metadata, path):
             with ui.tab_panels(tabs, value=tab_names[0]).classes('w-full'):
                 with ui.tab_panel(tab_names[0]).classes('w-full'):
                     codemirrors[0] = ui.codemirror(
-                        stream_load_code_snipet(name,subs),
+                        stream_load_code_snippet(name,subs),
                                               line_wrapping=True, language='Python').classes('h-full')
                 with ui.tab_panel(tab_names[1]).classes('w-full'):
                     codemirrors[1] = ui.codemirror(
-                        full_load_code_snipet(name,subs), 
+                        full_load_code_snippet(name,subs), 
                                               line_wrapping=True, language='Python').classes('h-full')
 
             ui.button('Copy', 
                     on_click=lambda: (
                         pyperclip.copy(codemirrors[tab_names.index(tabs.value)].value),
                         ui.notify("Copied to clipboard"),
-                        snipet.close()
+                        snippet.close()
                     )).classes('w-2/3').style('position: absolute; bottom: 10px;')
 
         with ui.column().classes(_button_column_classes):
             ui.button("Show partitions",icon="arrow_forward",on_click=lambda: show_partitions(views, metadata, path)).classes("w-full")
             downloaded = compute_subset_download(info)
 
-            ui.button("Loader Snipet",icon="code", on_click=snipet.open).classes("w-full")
+            ui.button("Loader snippet",icon="code", on_click=snippet.open).classes("w-full")
             ui.button("Show schema", icon="hub", on_click=on_click_schema).classes("w-full")
 
             with ui.dropdown_button("Actions", icon="menu",auto_close=False).classes("w-full"):

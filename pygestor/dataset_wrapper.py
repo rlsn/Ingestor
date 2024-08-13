@@ -28,6 +28,7 @@ def partition_struct(path="",size=0,n_samples=0,downloaded=False,**kargs):
         size=size,
         n_samples=n_samples,
         downloaded=downloaded,
+        acquisition_time=None,
         **kargs
         )
 

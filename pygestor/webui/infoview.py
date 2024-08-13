@@ -4,6 +4,7 @@ rlsn 2024
 """
 import os
 from nicegui import ui
+from datetime import datetime
 from pygestor import write_meta, DATA_DIR
 from pygestor.utils import compute_subset_download, compute_subset_n_samples, compute_subset_size
 
@@ -89,3 +90,5 @@ def show_partition_info_list(metadata, path):
         ui.label('Yes' if info["downloaded"] else 'No')
         ui.label("Download Path")
         ui.label(os.path.abspath(os.path.join(DATA_DIR, info["path"])).replace("\\","/"))
+        ui.label("Acquisition Time")
+        ui.label(datetime.fromtimestamp(info["acquisition_time"]).strftime("%c") if info["acquisition_time"] is not None else "")

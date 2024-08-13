@@ -25,7 +25,7 @@ A data interface designed to seamlessly acquire, organize, and manage diverse da
     - Support for data searching and sorting.
     - Ability to generate code snippets for quick access to datasets.
 
- <img src = "imgs/snipet.png" width ="45%" /> <img src = "imgs/ui.png" width ="45%" />
+ <img src = "imgs/snippet.png" width ="45%" /> <img src = "imgs/ui.png" width ="45%" />
 
 ## Quick Start
 ### Installation
@@ -94,5 +94,5 @@ The dataset info and storage status is tracked by a metadata file `metadata.json
 - pandas: Used to structure the dataset info tabular form for downstream data consumers. It provides a handy API for data manipulation and access, as well as chunking and datatype adjustments for memory efficiency.
 - nicegui (optional): Used to serve webUI frontend
 
-## Workflow
-Refer to [docs/workflow.md](docs/workflow.md) for comprehensive instructions on how to set up the system, acquire, manage and utilize datasets.
+## Dataset Expansion
+For a proposed management process to handle future dataset expansions, refer to [docs/dataset_expansion.md](docs/dataset_expansion.md)."
