@@ -94,14 +94,13 @@ def show_partition_info(views, metadata, path):
 
     async def on_download():
         n = ui.notification(timeout=None)
-        n.message = 'Downloading : See progress on the server'
+        n.message = 'Downloading : See progress on the gui server'
         n.spinner = True
         await asyncio.sleep(0.1)
         async def coro():
-            if len(_multi_sel)>0:
-                download(name, subset=subs, partitions=_multi_sel, force_redownload=False)
-            else:
-                download(name, subset=subs, partitions=[part], force_redownload=False)
+            await asyncio.to_thread(download, name, subset=subs, 
+                                    partitions=_multi_sel if len(_multi_sel)>0 else [part], force_redownload=False)
+
         task = asyncio.create_task(coro())
         await task
 

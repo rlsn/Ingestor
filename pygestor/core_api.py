@@ -217,8 +217,8 @@ def download(name:str, subset:str=None, partitions:list=None, force_redownload:b
 
     for i, part in enumerate(partitions):
         info = data_info["partitions"][part]
+        print(f"[INFO] [{i+1}/{len(partitions)}] downloading {info['path']}")
         if not info["downloaded"] or force_redownload:
-            print(f"[INFO] [{i+1}/{len(partitions)}] downloading {info['path']}")
             downloaded_path = data_cls.download(subset, part)
             # update download info
             info["downloaded"]=True
