@@ -37,7 +37,7 @@ pip install pygestor
 The module can be used with a GUI, terminal commands or Python APIs (more functionalities). For Python APIs use cases please refer to [this notebook](notebooks/api_demo.ipynb).
 
 ### Configurations
-Edit [`system.conf`](system.conf) to change the default system settings. In particular, set `data_dir` to the desired data storage location, either a local path or a cloud NFS.
+Edit [`confs/system.conf`](confs/system.conf) to change the default system settings. In particular, set `data_dir` to the desired data storage location, either a local path or a cloud NFS.
 
 ### Run GUI
 ```
