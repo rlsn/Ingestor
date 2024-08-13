@@ -37,7 +37,7 @@ pip install pygestor
 The module can be used with a GUI, terminal commands or Python APIs (more functionalities). For Python APIs use cases please refer to [this notebook](api_demo.ipynb).
 
 ### Configurations
-Edit [`system.conf`](system.conf) to change the default system settings. In particular, set `data_dir` to the desired data storage location, either a local path or a remote path, such as a mounted NFS.
+Edit [`system.conf`](system.conf) to change the default system settings. In particular, set `data_dir` to the desired data storage location, either a local path or a cloud NFS.
 
 ### Run GUI
 ```
@@ -45,16 +45,14 @@ python .\run-gui.py
 ```
 
 ### Data info and availability
-To list support datasets: 
 ```
+# list support datasets: 
 python cli.py -l
-```
-To list subsets in a datatset:
-```
+
+# list subsets in a datatset:
 python cli.py -l -d <dataset_name>
-```
-To list partitions in a subset:
-```
+
+# list partitions in a subset:
 python cli.py -l -d <dataset_name> -s <subset_name>
 ```
 ### Dataset management and extension
@@ -62,8 +60,6 @@ To download a specific subset:
 ```
 python cli.py -l -d <dataset_name> -s <subset_name>
 ```
-To download specific partitions, use Python API `pygestor.download()`.
-
 To remove downloaded data files in a subset:
 ```
 python cli.py -r -d <dataset_name> -s <subset_name>
@@ -86,11 +82,15 @@ dataset_A
     └── partition_2
 ...
 ```
-File storage is chosen for its comparatively high cost efficiency, scalability, and ease of management compared to other types of storage.
+File storage is used for its comparatively high cost efficiency, scalability, and ease of management compared to other types of storage.
 
 The dataset info and storage status is tracked by a metadata file `metadata.json` for efficient reference and update.
 ### Dependencies
 - python >= 3.11
 - huggingface_hub: Provides native support for datasets hosted on Hugging Face, making it an ideal library for downloading.
-- pyarrow: Used to compress and extract parquet files, a data file format designed for efficient data storage and retrieval, compatible with pandas.
-- pandas: Used to load the text dataset into memory for downstream data consumers. It provides a handy API for data manipulation and access, as well as chunking and datatype adjustments for memory efficiency.
+- pyarrow: Used to compress and extract parquet files, a data file format designed for efficient data storage and retrieval.
+- pandas: Used to structure the dataset info tabular form for downstream data consumers. It provides a handy API for data manipulation and access, as well as chunking and datatype adjustments for memory efficiency.
+- nicegui (optional): Used to serve GUI frontend
+
+## Workflow
+Refer to [docs/workflow.md](docs/workflow.md) for comprehensive instructions on how to set up the system, acquire, manage and utilize datasets.
