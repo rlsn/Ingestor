@@ -3,7 +3,6 @@ A platform designed to seamlessly acquire, organize, and manage diverse datasets
 
 [![Python application](https://github.com/rlsn/Ingestor/actions/workflows/python-app.yml/badge.svg)](https://github.com/rlsn/Ingestor/actions/workflows/python-app.yml)
 [![Publish Python Package](https://github.com/rlsn/Pygestor/actions/workflows/python-publish.yml/badge.svg)](https://github.com/rlsn/Pygestor/actions/workflows/python-publish.yml)
-![GitHub branch status](https://img.shields.io/github/checks-status/rlsn/Pygestor/main)
 ![GitHub deployments](https://img.shields.io/github/deployments/rlsn/Pygestor/pypi)
 ![GitHub Release](https://img.shields.io/github/v/release/rlsn/Pygestor)
 ![PyPI - Version](https://img.shields.io/pypi/v/pygestor)
