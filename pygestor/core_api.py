@@ -264,13 +264,12 @@ def download(name:str, subset:str=None, partitions:list=None, force_redownload:b
 
     for i, part in enumerate(partitions):
         info = data_info["partitions"][part]
-        if verbose:
+        if 1:
             print(f"[INFO] [{i+1}/{len(partitions)}] downloading {info['path']}")
         if not info["downloaded"] or force_redownload:
             downloaded_path = data_cls.download((name, subset, part))
             # update download info
             info["downloaded"]=True
-            data_info["downloaded"] = compute_subset_download(data_info)
             # compute num samples
             info["n_samples"] = compute_nsamples(downloaded_path)
             # timestamp
