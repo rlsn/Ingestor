@@ -269,7 +269,8 @@ def download(name:str, subset:str=None, partitions:list=None, force_redownload:b
         if not info["downloaded"] or force_redownload:
             downloaded_path = data_cls.download((name, subset, part))
             # update download info
-            info["downloaded"]=True
+            info["downloaded"] = True
+            info["is_latest"] = True
             # compute num samples
             info["n_samples"] = compute_nsamples(downloaded_path)
             # timestamp
