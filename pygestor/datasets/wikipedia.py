@@ -11,26 +11,26 @@ from ..utils import AttrDict
 class WikipediaDataset(BaseDataset):
     namespace = "wikimedia/wikipedia"
     abstract = False
-    @staticmethod
-    def get_metadata(verbose=False):
+    @classmethod
+    def get_metadata(cls, verbose=False):
         from .hf_parquet import HuggingFaceParquetDataset
-        meta = HuggingFaceParquetDataset.get_metadata(WikipediaDataset.namespace, verbose)
+        meta = HuggingFaceParquetDataset.get_metadata(cls.namespace, verbose)
         meta["description"] = "Wikipedia dataset containing cleaned articles of all languages."
         meta["modality"]="text"
         return meta
         
-    @staticmethod
-    def download(datapath):
+    @classmethod
+    def download(cls, datapath):
         from .hf_parquet import HuggingFaceParquetDataset
         return HuggingFaceParquetDataset.download(datapath)
 
-    @staticmethod
-    def check_update_to_date(name):
+    @classmethod
+    def check_update_to_date(cls, name):
         from .hf_parquet import HuggingFaceParquetDataset
         return HuggingFaceParquetDataset.check_update_to_date(name)
 
-    @staticmethod
-    def process_samples(samples:pd.DataFrame)->AttrDict:
+    @classmethod
+    def process_samples(cls, samples:pd.DataFrame)->AttrDict:
         data = AttrDict([(col,[]) for col in samples.columns])
         for row in samples.itertuples():
             for col in samples.columns:

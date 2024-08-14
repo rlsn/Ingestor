@@ -15,12 +15,23 @@ from ..utils import compute_nsamples, all_partitions, divide_chunks, AttrDict
 class HuggingFaceParquetDataset(BaseDataset):
     namespace = "HuggingFaceParquet"
     abstract = True
-    @staticmethod
-    def get_metadata(repo_id, verbose=False):
+    @classmethod
+    def get_metadata(cls, repo_name, url, verbose=False):
+        """retrieve metadata from url
+        Args:
+            repo_name (str): a unique repo_name for this dataset in your storage 
+            url (str): https://huggingface.co/datasets/{repo_id}
+            verbose (bool, optional): verbose mode. Defaults to False.
+
+        Returns:
+            _type_: success or not
+        """
+        repo_id = url.split("huggingface.co/datasets/")[-1]
+
         meta = dataset_struct(
-            path=repo_id,
+            path=repo_name,
             formats="parquet",
-            source=f"https://huggingface.co/datasets/{repo_id}",
+            source=url,
             dataset_class=HuggingFaceParquetDataset.namespace,
         )
         
@@ -42,9 +53,9 @@ class HuggingFaceParquetDataset(BaseDataset):
 
             if subs not in meta["subsets"]:
                 meta["subsets"][subs] = subset_struct(
-                    path=os.path.join(repo_id, subs),
+                    path=os.path.join(repo_name, subs),
                 )
-            part_path = os.path.join(repo_id, subs, part)
+            part_path = os.path.join(repo_name, subs, part)
             download_path = os.path.join(DATA_DIR, part_path)
             downloaded = os.path.exists(download_path)
             meta["subsets"][subs]["partitions"][part]=partition_struct(
@@ -57,16 +68,17 @@ class HuggingFaceParquetDataset(BaseDataset):
             )
         return meta
     
-    @staticmethod
-    def download(datapath):
+    @classmethod
+    def download(cls, datapath):
         from ..core_api import get_meta
         name,_,_ = datapath
+        repo_id = get_meta(datapath[0])["source"].split("huggingface.co/datasets/")[-1]
         part_info = get_meta(*datapath)
         download_path = os.path.join(DATA_DIR, part_info["path"])
         blob_id = get_paths_info("wikimedia/wikipedia", part_info["hf_path"], repo_type="dataset")[0].blob_id
 
         os.makedirs(os.path.dirname(download_path),exist_ok=True)
-        filepath=hf_hub_download(repo_id=name,
+        filepath=hf_hub_download(repo_id=repo_id,
                         filename=part_info["hf_path"],
                         force_download = True,
                         local_dir=CACHE_DIR,
@@ -78,8 +90,8 @@ class HuggingFaceParquetDataset(BaseDataset):
             clear_cache()
         return download_path
     
-    @staticmethod
-    def check_update_to_date(name):
+    @classmethod
+    def check_update_to_date(cls, name):
         up_to_date = True
         for part in all_partitions(name):
             if part["downloaded"]:
@@ -88,8 +100,8 @@ class HuggingFaceParquetDataset(BaseDataset):
                 up_to_date &= part["is_latest"]
         return up_to_date
 
-    @staticmethod
-    def process_samples(samples:pd.DataFrame)->AttrDict:
+    @classmethod
+    def process_samples(cls, samples:pd.DataFrame)->AttrDict:
         data = AttrDict([(col,[]) for col in samples.columns])
         for row in samples.itertuples():
             for col in samples.columns:

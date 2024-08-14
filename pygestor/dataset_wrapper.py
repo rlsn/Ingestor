@@ -55,18 +55,26 @@ class Dataset(object):
             return wrapped_class
         return inner_wrapper
     
+    @classmethod
+    def get_abstract_names(cls)->list:
+        ret = []
+        for cls_name in cls._dataset_classes:
+            if cls._dataset_classes[cls_name].abstract:
+                ret.append(cls_name)
+        return ret
+    
 class BaseDataset(object):
-    @staticmethod
-    def get_metadata(*args, **kargs):
+    @classmethod
+    def get_metadata(cls, *args, **kargs):
         pass
-    @staticmethod
-    def download(datapath):
+    @classmethod
+    def download(cls, datapath):
         pass
-    @staticmethod
-    def check_update_to_date(name):
+    @classmethod
+    def check_update_to_date(cls, name):
         pass
-    @staticmethod
-    def process_samples(samples:pd.DataFrame)->AttrDict:
+    @classmethod
+    def process_samples(cls, samples:pd.DataFrame)->AttrDict:
         pass
 
 from .datasets import *

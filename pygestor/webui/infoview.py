@@ -18,7 +18,7 @@ def display(field, value):
     ui.label(field)
     ui.label(value)
 
-def show_dataset_info_list(views, name):
+def show_dataset_info_list(name):
     metadata = get_meta()
     info = metadata["datasets"][name]
     new_desc = [info["description"]]
@@ -27,11 +27,11 @@ def show_dataset_info_list(views, name):
     def on_save():
         for k,v in changes.items():
             info[k] = v
-        write_meta(metadata)
+        write_meta()
         ui.notify("Change saved.")
         from pygestor.webui.dataviewer import show_datasets, show_dataset_info
-        show_datasets(views, metadata)
-        show_dataset_info(views, metadata, name)
+        show_datasets()
+        show_dataset_info(name)
 
     with ui.grid(columns="auto auto").classes('p-3'):
         display("Dataset",name)
@@ -45,20 +45,19 @@ def show_dataset_info_list(views, name):
         ui.label("")
         ui.button("Save changes", icon="save", on_click=lambda: on_save())
 
-def show_subset_info_list(views, path):
-    metadata = get_meta()
+def show_subset_info_list(path):
+    info = get_meta(*path)
     name, subs = path
-    info = metadata["datasets"][name]["subsets"][subs]
     changes = dict()
 
     def on_save():
         for k,v in changes.items():
             info[k] = v
-        write_meta(metadata)
+        write_meta()
         ui.notify("Change saved.")
         from pygestor.webui.dataviewer import show_subsets, show_subset_info
-        show_subsets(views, metadata, name)
-        show_subset_info(views, metadata, path)
+        show_subsets(name)
+        show_subset_info(path)
 
     with ui.grid(columns="auto auto").classes('p-3'):
         display("Dataset", name)
@@ -77,9 +76,8 @@ def show_subset_info_list(views, path):
         ui.button("Save changes", icon="save", on_click=lambda: on_save())
 
 def show_partition_info_list(path):
-    metadata = get_meta()
+    info = get_meta(*path)
     name, subs, part = path
-    info = metadata["datasets"][name]["subsets"][subs]["partitions"][part]
     with ui.grid(columns="auto auto").classes('p-3'):
         display("Dataset", name)
         display("Subset", subs)

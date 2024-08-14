@@ -5,7 +5,7 @@ rlsn 2024
 import pyperclip
 from nicegui import ui
 import asyncio
-from pygestor import DATA_DIR, get_meta, download, remove, stream_dataset, process_samples, version_check
+from pygestor import DATA_DIR, get_meta, download, remove, stream_dataset, process_samples, version_check, remove_dataset_metadata
 from pygestor.utils import read_schema, Mutable
 from pygestor.webui.infoview import *
 from pygestor.webui.webui_utils import stream_load_code_snippet, full_load_code_snippet, display_sample, is_part_latest, is_subs_latest
@@ -373,7 +373,7 @@ def show_subset_info(path):
                     download_button.disable()
 
         with ui.scroll_area().classes(_info_list_classes):
-            show_subset_info_list(_views, path)
+            show_subset_info_list(path)
 
 def show_subsets(name):
     metadata = get_meta()
@@ -418,13 +418,29 @@ def show_dataset_info(name):
         await asyncio.sleep(2)
         n.dismiss()
 
+    def on_remove(name):
+        remove_dataset_metadata(name)
+        ui.notify("Done")
+        show_datasets()
+
     with infoview:
+        with ui.dialog() as dialog, ui.card().classes('items-center'):
+            ui.label('You are about to untrack this dataset, its metadata will be removed.')
+            ui.markdown('**Are you sure?**')
+            with ui.grid(columns=2).classes('w-full items-center'):
+                ui.button('Yes', icon="delete_forever", on_click=lambda:on_remove(name)).classes('w-full').props(f'color=red')
+                ui.button('No', on_click=dialog.close).classes('w-full')
+
         with ui.column().classes(_button_column_classes):
             ui.button("Show subsets",icon="arrow_forward",on_click=lambda: show_subsets(name)).classes("w-full")
             ui.button("Version check",icon="published_with_changes",on_click=on_version_check).classes("w-full")
-            
+            ui.button("Untrack dataset",icon="delete_forever",on_click=dialog.open).classes("w-full").props(f'color=red')
+
+
         with ui.scroll_area().classes(_info_list_classes):
-            show_dataset_info_list(_views, name)
+            show_dataset_info_list(name)
+
+
 
 def show_datasets():
     metadata = get_meta()

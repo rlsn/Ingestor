@@ -8,8 +8,7 @@ sys.path.append(os.getcwd())
 import pygestor
 
 def test_core():
-
-
+    
     pygestor.initialize("wikimedia/wit_base",verbose=True)
 
     pygestor.list_datasets()

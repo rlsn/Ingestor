@@ -44,6 +44,7 @@ def write_meta(metadata=None):
 
     with open(META_PATH, "w") as fp:
         json.dump(_metadata, fp, ensure_ascii=True, indent=4)
+    print("[INFO] metadata file updated.")
 
 def clear_cache():
     if os.path.exists(CACHE_DIR):
@@ -69,22 +70,31 @@ def initialize_root():
 def import_from_path(path=None, name=None, subset=None, partition=None):
     pass
 
-def initialize_dataset(metadata, name, dataset_id=None, verbose=False):
-    if dataset_id is not None:
-        data_info = Dataset.get(dataset_id).get_metadata(name, verbose=verbose)
-        metadata["datasets"][name] = data_info
-        return
-    if not Dataset.get(name).abstract:
-        data_info = Dataset.get(name).get_metadata(verbose=verbose)
-        metadata["datasets"][name] = data_info
+def initialize_dataset(name:str, dataset_id:str=None, verbose:bool=False, **kargs)->bool:
+    metadata = get_meta()
+    ret = True
+    try:
+        if dataset_id is not None:
+            data_info = Dataset.get(dataset_id).get_metadata(name, verbose=verbose, **kargs)
+            metadata["datasets"][name] = data_info
+    
+        elif not Dataset.get(name).abstract:
+            data_info = Dataset.get(name).get_metadata(verbose=verbose)
+            metadata["datasets"][name] = data_info
+        write_meta(metadata)
+    except Exception as e:
+        print(f"[ERROR] Initialization failed:\n {e}")
+        ret = False
+    return ret
 
 def remove_dataset_metadata(name):
     meta = get_meta()
-    if name in meta:
-        del meta[name]
+    if name in meta["datasets"]:
+        del meta["datasets"][name]
+        print(f"[INFO] removed {name} from metadata.")
     write_meta(meta)
 
-def initialize(name=None, dataset_id=None, verbose=True):
+def initialize(name:str=None, dataset_id:str=None, verbose:bool=True)->bool:
     # run the dataset survey, update the metadata based on survey and data inventory
     try:
         with open(META_PATH, "r") as fp:
@@ -100,18 +110,17 @@ def initialize(name=None, dataset_id=None, verbose=True):
             shutil.copyfile(META_PATH, META_PATH+'.bak')
         metadata = initialize_root()
 
+    ret = True
 
     if name is not None:
-        initialize_dataset(metadata, name, dataset_id, verbose=verbose)
+        ret &= initialize_dataset(name, dataset_id, verbose=verbose)
     else:
         if input("[INFO] no dataset specified, will update all registered datasets.[y/n]").lower()=='y':
             for ds in Dataset._dataset_classes:
                 print(f"[INFO] updating metadata for {ds}")
-                initialize_dataset(metadata, ds, verbose=verbose)
+                ret &= initialize_dataset(ds, verbose=verbose)
+    return ret
 
-    write_meta(metadata)
-    print("[INFO] metadata file updated.")
-    
 def list_datasets(display=True):
     root = get_meta()
     metadata = root["datasets"]
