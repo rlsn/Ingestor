@@ -261,10 +261,10 @@ def download(name:str, subset:str=None, partitions:list=None, force_redownload:b
         # default as all partitions
         partitions = list(data_info["partitions"].keys())
 
-
+    verbose = True
     for i, part in enumerate(partitions):
         info = data_info["partitions"][part]
-        if 1:
+        if verbose:
             print(f"[INFO] [{i+1}/{len(partitions)}] downloading {info['path']}")
         if not info["downloaded"] or force_redownload:
             downloaded_path = data_cls.download((name, subset, part))
@@ -275,6 +275,7 @@ def download(name:str, subset:str=None, partitions:list=None, force_redownload:b
             # timestamp
             info["acquisition_time"] = time.time()
             write_meta(root)
+    print(downloaded_path, os.path.exists(downloaded_path))
     if verbose:
         print("[INFO] downloading complete.")
 
