@@ -30,6 +30,9 @@ def divide_chunks(l, n):
 def normpath(path):
     return os.path.normpath(path).replace('\\','/')
 
+def joinpath(*path):
+    return normpath(os.path.join(*path))
+
 def compute_subset_download(subs):
     return sum([1 if part['downloaded'] else 0 for part in subs["partitions"].values()])
 

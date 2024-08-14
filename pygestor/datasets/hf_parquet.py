@@ -9,7 +9,7 @@ import time
 from huggingface_hub import hf_hub_download, list_repo_files, get_paths_info
 from ..dataset_wrapper import BaseDataset, Dataset, dataset_struct, subset_struct, partition_struct
 from ..__init__ import DATA_DIR, CACHE_DIR, AUTO_CLEAR_CACHE, DEFAULT_SUBSET_NAME
-from ..utils import compute_nsamples, all_partitions, divide_chunks, AttrDict
+from ..utils import compute_nsamples, all_partitions, divide_chunks, joinpath, AttrDict
 
 @Dataset.register('HuggingFaceParquet')
 class HuggingFaceParquetDataset(BaseDataset):
@@ -53,10 +53,10 @@ class HuggingFaceParquetDataset(BaseDataset):
 
             if subs not in meta["subsets"]:
                 meta["subsets"][subs] = subset_struct(
-                    path=os.path.join(repo_name, subs),
+                    path=joinpath(repo_name, subs),
                 )
-            part_path = os.path.join(repo_name, subs, part)
-            download_path = os.path.join(DATA_DIR, part_path)
+            part_path = joinpath(repo_name, subs, part)
+            download_path = joinpath(DATA_DIR, part_path)
             downloaded = os.path.exists(download_path)
             meta["subsets"][subs]["partitions"][part]=partition_struct(
                 path=part_path,
@@ -74,7 +74,7 @@ class HuggingFaceParquetDataset(BaseDataset):
         name,_,_ = datapath
         repo_id = get_meta(datapath[0])["source"].split("huggingface.co/datasets/")[-1]
         part_info = get_meta(*datapath)
-        download_path = os.path.join(DATA_DIR, part_info["path"])
+        download_path = joinpath(DATA_DIR, part_info["path"])
         blob_id = get_paths_info("wikimedia/wikipedia", part_info["hf_path"], repo_type="dataset")[0].blob_id
 
         os.makedirs(os.path.dirname(download_path),exist_ok=True)

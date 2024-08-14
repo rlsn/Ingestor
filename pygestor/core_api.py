@@ -9,7 +9,7 @@ import time
 from typing import Generator
 from .dataset_wrapper import BaseDataset, Dataset
 from .__init__ import DATA_DIR, META_PATH, CACHE_DIR, DEFAULT_SUBSET_NAME
-from .utils import AttrDict, compute_nsamples, load_parquets, load_parquets_in_batch, compute_subset_download, compute_subset_size, normpath
+from .utils import AttrDict, compute_nsamples, load_parquets, load_parquets_in_batch, compute_subset_download, compute_subset_size, joinpath
     
 _metadata = dict()
 
@@ -191,7 +191,7 @@ def remove(name, subset=None, partitions=[], force_remove=False):
                 print("[INFO] Deletion aborted")
                 return
 
-        shutil.rmtree(normpath(os.path.join(DATA_DIR, metadata[name]["path"])), ignore_errors=True)
+        shutil.rmtree(joinpath(DATA_DIR, metadata[name]["path"]), ignore_errors=True)
 
         # update metadata
         for subset in metadata[name]['subsets'].values():
@@ -216,7 +216,7 @@ def remove(name, subset=None, partitions=[], force_remove=False):
                 print("[INFO] Deletion aborted")
                 return
         info = metadata[name]["subsets"][subset]
-        shutil.rmtree(normpath(os.path.join(DATA_DIR, info["path"])), ignore_errors=True)
+        shutil.rmtree(joinpath(DATA_DIR, info["path"]), ignore_errors=True)
         # update metadata
         for part in info['partitions']:
             part_info = info['partitions'][part]
@@ -230,7 +230,7 @@ def remove(name, subset=None, partitions=[], force_remove=False):
     # remove partitions
     for part in partitions:
         info = metadata[name]["subsets"][subset]["partitions"][part]
-        shutil.rmtree(normpath(os.path.join(DATA_DIR, info["path"])), ignore_errors=True)
+        shutil.rmtree(joinpath(DATA_DIR, info["path"]), ignore_errors=True)
         # update metadata
         info['downloaded']=False
         info['n_samples']=0
@@ -265,7 +265,7 @@ def download(name:str, subset:str=None, partitions:list=None, force_redownload:b
         info = data_info["partitions"][part]
         if verbose:
             print(f"[INFO] [{i+1}/{len(partitions)}] downloading {info['path']}")
-        print(info["downloaded"])
+
         if not info["downloaded"] or force_redownload:
             downloaded_path = data_cls.download((name, subset, part))
             # update download info
@@ -275,7 +275,6 @@ def download(name:str, subset:str=None, partitions:list=None, force_redownload:b
             # timestamp
             info["acquisition_time"] = time.time()
             write_meta(root)
-            print(downloaded_path, os.path.exists(normpath(downloaded_path)))
 
     if verbose:
         print("[INFO] downloading complete.")
@@ -315,7 +314,7 @@ def get_filepaths(name, subset=None, partitions=None, download_if_missing=False,
         tbd_parts = partitions
 
     download(name, subset, tbd_parts, verbose=verbose)
-    filepaths = [normpath(os.path.join(DATA_DIR, data_info["partitions"][part]["path"])) for part in tbd_parts]
+    filepaths = [joinpath(DATA_DIR, data_info["partitions"][part]["path"]) for part in tbd_parts]
     return filepaths
 
 def version_check(name:str)->bool:
