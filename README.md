@@ -11,14 +11,16 @@ A data interface designed to seamlessly acquire, organize, and manage diverse da
 
 
 ## Key Features
-- Dataset Acquisition:
+- Dataset Acquisition & Usage:
      - Support for downloading and loading datasets with a simple one-line command.
      - Automatic handling of subsets and partitions for efficient data storage and access.
+     - Support dataset batched loading.
+     - Adding new datasets via URL with minimal effort
 
 - Data Organization:
     - Three-level data organization structure: dataset, subset, and partition.
     - Support for both local and network file systems for data storage.
-    - Efficient handling of large files by allowing batched loading.
+    - Efficient handling of large files by storing data in partitions.
 
 - Web Interface
     - Introduced a web UI for intuitive data management and analysis.
@@ -26,6 +28,7 @@ A data interface designed to seamlessly acquire, organize, and manage diverse da
     - Ability to download and remove one subset or multiple partitions in one go.
     - Support for data searching and sorting.
     - Ability to generate code snippets for quick access to datasets.
+    - Support for creating and deleting metadata for new datasets.
 
  <img src = "imgs/snippet.png" width ="45%" /> <img src = "imgs/preview.png" width ="45%" />
 
@@ -48,29 +51,20 @@ Edit [`confs/system.conf`](confs/system.conf) to change the default system setti
 python .\run-gui.py
 ```
 
-### Data info and availability
-```
-# list support datasets: 
-python cli.py -l
+For a usage guide on the CLI, refer to [docs/cli_usage.md](docs/cli_usage.md)
 
-# list subsets in a datatset:
-python cli.py -l -d <dataset_name>
+## Adding a New Dataset
 
-# list partitions in a subset:
-python cli.py -l -d <dataset_name> -s <subset_name>
-```
-### Dataset management and extension
-To download a specific subset:
-```
-python cli.py -l -d <dataset_name> -s <subset_name>
-```
-To remove downloaded data files in a subset:
-```
-python cli.py -r -d <dataset_name> -s <subset_name>
-```
+New datasets can be added using predefined ingestion and processing pipelines. For example, the [HuggingFaceParquet](pygestor/datasets/hf_parquet.py) pipeline can be used to ingest Parquet datasets from Hugging Face. It is recommended to use the WebUI for this process. In the "Add New" menu, fill in the dataset name, URL, and pipeline name to retrieve and save the metadata of the new dataset. For example:
 
-**To support a new dataset, add a new class file to [`pygestor/datasets`](pygestor/datasets) that defines how to organize, download and load data, following the example in [`pygestor/datasets/wikipedia.py`](pygestor/datasets/wikipedia.py). Then update the metadata by running `python cli.py -init -d <new_dataset_name>`**
+- Dataset Name: facebook/multilingual_librispeech
+- Dataset URL: https://huggingface.co/datasets/facebook/multilingual_librispeech
+- Pipeline: HuggingFaceParquet
 
+If a custom pipeline is required for datasets that don't fit the general pipelines, you will need to add a new pipeline to [pygestor/datasets](pygestor/datasets) that defines how to organize, download, and process the data. You can follow the example provided in [pygestor/datasets/wikipedia.py](pygestor/datasets/wikipedia.py). Ensure that the pipeline name matches your desired dataset name. After that, update the metadata by running 
+```
+python cli.py -init -d <new_dataset_name>
+```
 
 ## Technical Details
 ### Storage
@@ -89,6 +83,7 @@ dataset_A
 File storage is used for its comparatively high cost efficiency, scalability, and ease of management compared to other types of storage.
 
 The dataset info and storage status is tracked by a metadata file `metadata.json` for efficient reference and update.
+
 ### Dependencies
 - python >= 3.11
 - huggingface_hub: Provides native support for datasets hosted on Hugging Face, making it an ideal library for downloading.

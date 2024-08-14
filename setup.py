@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pygestor',
-    version='0.1.2',
+    version='0.2.0',
     url='https://github.com/rlsn/Pygestor',
     author='Yumo Wang',
     author_email='yumo1996@gmail.com',

@@ -34,13 +34,13 @@ def add_new_dataset(context):
     with ui.dialog() as view, ui.card().classes(_view_classes).style(_view_style):
         with ui.column().classes('px-5 w-full'):
             with ui.row():
-                ui.label("Adding a new dataset").style('font-size:150%; font-weight:bold')
+                ui.label("Adding A New Dataset").style('font-size:150%; font-weight:bold')
             with ui.column().classes('w-full gap-5'):
                 name = ui.input(label="Dataset Name", placeholder="A unique name for your dataset").classes("w-full")
                 url = ui.input(label="Dataset URL", placeholder='e.g. https://huggingface.co/datasets/<repo_id>').classes("w-full")
 
                 cls_options = Dataset.get_abstract_names()
-                data_cls = ui.select(label="Dataset Class", value=cls_options[0], options=cls_options).classes("w-full")
+                data_cls = ui.select(label="Pipline", value=cls_options[0], options=cls_options).classes("w-full")
 
                 ui.button("Add dataset", icon="add", on_click=lambda: on_add(name.value,data_cls.value, url.value)).classes("w-full")
 
