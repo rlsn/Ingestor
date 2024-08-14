@@ -43,10 +43,10 @@ class Dataset(object):
 
     @classmethod
     def get(cls, dataset_name:str):
-        try:
-            return cls._dataset_classes[dataset_name]()
-        except KeyError:
-            raise ValueError(f"unknown dataset name : {dataset_name}")
+        if dataset_name in cls._dataset_classes:
+            return cls._dataset_classes[dataset_name]
+        else:
+            return None
 
     @classmethod
     def register(cls, dataset_name:str):

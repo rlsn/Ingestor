@@ -14,7 +14,8 @@ class WikipediaDataset(BaseDataset):
     @classmethod
     def get_metadata(cls, verbose=False):
         from .hf_parquet import HuggingFaceParquetDataset
-        meta = HuggingFaceParquetDataset.get_metadata(cls.namespace, verbose)
+        url = "https://huggingface.co/datasets/wikimedia/wikipedia"
+        meta = HuggingFaceParquetDataset.get_metadata(cls.namespace, url, verbose)
         meta["description"] = "Wikipedia dataset containing cleaned articles of all languages."
         meta["modality"]="text"
         return meta

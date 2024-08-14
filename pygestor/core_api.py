@@ -13,13 +13,31 @@ from .utils import AttrDict, compute_nsamples, load_parquets, load_parquets_in_b
     
 _metadata = dict()
 
+def initialize_root():
+    metadata = dict()
+
+    metadata["data_root"] = DATA_DIR
+    metadata["cache_dir"] = CACHE_DIR
+    metadata["datasets"] = dict()
+
+    return metadata
+
 def load_meta():
     try:
         with open(META_PATH, "r") as fp:
             metadata = json.load(fp)
+        print("[INFO] loaded metadata file.")
+        
     except:
-        raise Exception("metadata file is corrupted or not initialized, try initialize it first with 'initialize()'")
-    
+        prompt = input("[WARNING] metadata file is corrupted or not initialized, a new file will be created. Continue?[y/n]")
+        if prompt.lower()!="y":
+            print("[INFO] initialization aborted.")
+            return
+        # create a backup in case of bad decision
+        if os.path.exists(META_PATH):
+            shutil.copyfile(META_PATH, META_PATH+'.bak')
+        metadata = initialize_root()
+
     for k in metadata:
         _metadata[k] = metadata[k]
     return _metadata
@@ -58,29 +76,21 @@ def get_data_cls(name):
         data_cls = Dataset.get(name)
     return data_cls
 
-def initialize_root():
-    metadata = dict()
-
-    metadata["data_root"] = DATA_DIR
-    metadata["cache_dir"] = CACHE_DIR
-    metadata["datasets"] = dict()
-
-    return metadata
-
 def import_from_path(path=None, name=None, subset=None, partition=None):
     pass
 
-def initialize_dataset(name:str, dataset_id:str=None, verbose:bool=False, **kargs)->bool:
+def initialize_dataset(name:str, dataset_cls:str=None, verbose:bool=False, **kargs)->bool:
     metadata = get_meta()
     ret = True
     try:
-        if dataset_id is not None:
-            data_info = Dataset.get(dataset_id).get_metadata(name, verbose=verbose, **kargs)
-            metadata["datasets"][name] = data_info
-    
-        elif not Dataset.get(name).abstract:
+        if Dataset.get(name) is not None and not Dataset.get(name).abstract:
             data_info = Dataset.get(name).get_metadata(verbose=verbose)
             metadata["datasets"][name] = data_info
+    
+        elif dataset_cls is not None:
+            data_info = Dataset.get(dataset_cls).get_metadata(name, verbose=verbose, **kargs)
+            metadata["datasets"][name] = data_info
+
         write_meta(metadata)
     except Exception as e:
         print(f"[ERROR] Initialization failed:\n {e}")
@@ -95,21 +105,6 @@ def remove_dataset_metadata(name):
     write_meta(meta)
 
 def initialize(name:str=None, dataset_id:str=None, verbose:bool=True)->bool:
-    # run the dataset survey, update the metadata based on survey and data inventory
-    try:
-        with open(META_PATH, "r") as fp:
-            metadata = json.load(fp)
-        print("[INFO] loaded metadata file.")
-    except:
-        prompt = input("[WARNING] metadata file is corrupted or not initialized, a new file will be created. Continue?[y/n]")
-        if prompt.lower()!="y":
-            print("[INFO] initialization aborted.")
-            return
-        # create a backup in case of bad decision
-        if os.path.exists(META_PATH):
-            shutil.copyfile(META_PATH, META_PATH+'.bak')
-        metadata = initialize_root()
-
     ret = True
 
     if name is not None:

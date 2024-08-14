@@ -16,7 +16,8 @@ class WitbaseDataset(BaseDataset):
     @classmethod
     def get_metadata(cls, verbose=False):
         from .hf_parquet import HuggingFaceParquetDataset
-        meta = HuggingFaceParquetDataset.get_metadata(cls.namespace, verbose)
+        url = "https://huggingface.co/datasets/wikimedia/wit_base"
+        meta = HuggingFaceParquetDataset.get_metadata(cls.namespace, url, verbose)
         meta["description"] = "Wikimedia's version of the Wikipedia-based Image Text (WIT) Dataset, a large multimodal multilingual dataset."
         meta["modality"]="text,image"
         return meta
