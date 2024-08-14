@@ -92,4 +92,4 @@ The dataset info and storage status is tracked by a metadata file `metadata.json
 - nicegui (optional): Used to serve webUI frontend
 
 ## Dataset Expansion
-For a proposed management process to handle future dataset expansions, refer to [docs/dataset_expansion.md](docs/dataset_expansion.md)."
+For a proposed management process to handle future dataset expansions, refer to [docs/dataset_expansion.md](docs/dataset_expansion.md).
