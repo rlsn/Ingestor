@@ -8,6 +8,25 @@ import pyarrow.parquet as pq
 from pyarrow.dataset import dataset
 from pyarrow.parquet import ParquetDataset
 
+def all_partitions(*metadata_path):
+    from .core_api import get_meta
+    info = get_meta(*metadata_path)
+    def part_loop():
+        for part in info["partitions"].values():
+            yield part
+    def subs_loop():
+        for subs in info["subsets"].values():
+            for part in subs["partitions"].values():
+                yield part
+    if "subsets" in info:
+        yield from subs_loop()
+    else:
+        yield from part_loop()
+
+def divide_chunks(l, n): 
+    for i in range(0, len(l), n):  
+        yield l[i:i + n] 
+
 def normpath(path):
     return os.path.normpath(path).replace('\\','/')
 

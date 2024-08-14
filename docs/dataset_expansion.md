@@ -9,7 +9,7 @@ As the number of datasets increases, it is important to establish a streamlined 
 
 ## 2. Acquiring Datasets
 - Once approved, the data team determines the methods to download, partition and store the dataset.
-- A designated dataset class is defined and added to [pygestor.datasets](pygestor/datasets), with the metadata of the new dataset initialized.
+- If a general class like [pygestor.datasets.HuggingFaceParquetDataset](pygestor/datasetshf_parquet.py) is available, use it to initialize the metadata of the new dataset. Otherwise define a designated dataset class and add it to [pygestor.datasets](pygestor/datasets).
 - The dataset is downloaded using pygestor, and subsets and partitions are automatically organized.
 - Verify that the dataset has been downloaded and stored correctly.
 

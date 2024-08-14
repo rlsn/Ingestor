@@ -5,10 +5,10 @@ rlsn 2024
 import pyperclip
 from nicegui import ui
 import asyncio
-from pygestor import load_meta, DATA_DIR, download, remove, stream_dataset, process_samples
-from pygestor.utils import read_schema, AttrDict, Mutable
+from pygestor import DATA_DIR, get_meta, download, remove, stream_dataset, process_samples, version_check
+from pygestor.utils import read_schema, Mutable
 from pygestor.webui.infoview import *
-from pygestor.webui.webui_utils import stream_load_code_snippet, full_load_code_snippet
+from pygestor.webui.webui_utils import stream_load_code_snippet, full_load_code_snippet, display_sample, is_part_latest, is_subs_latest
 from pygestor.webui import webui_config
 from pygestor.webui.styles import *
 
@@ -17,8 +17,9 @@ _view_height = '750px'
 _info_list_classes = "w-full h-[1000px] px-0 py-0"
 _snippet_style = 'width: 800px; height: 600px; max-width: none; max-height: none'
 _button_column_classes = 'w-3/4 items-center px-0 py-0 gap-2'
+_views = dict()
 
-def dataset_table(metadata):
+def dataset_table():
     columns = [
         {'name': 'name', 'label': 'Dataset', 'field': 'name', 'required': True, 'align': 'left', 'sortable': True},
         {'name': 'modality', 'label': 'Modality', 'field': 'modality', 'sortable': True},
@@ -26,27 +27,28 @@ def dataset_table(metadata):
         {'name': 'desc', 'label': 'Description', 'field': 'desc', 'align': 'left', 'style': 'text-wrap: wrap;'},
     ]
     rows = []
-    for ds in metadata["datasets"]:
+    for ds in get_meta()["datasets"]:
         rows.append({
             'name': ds, 
-            'modality': ",".join(metadata["datasets"][ds]["modality"]),
-            'desc': metadata["datasets"][ds]["description"],
-            'src': metadata["datasets"][ds]["source"],
+            'modality': get_meta(ds)["modality"],
+            'desc': get_meta(ds)["description"],
+            'src': get_meta(ds)["source"],
         })
 
     return columns, rows
 
-def subset_table(metadata):
+def subset_table(subs_meta):
     columns = [
         {'name': 'name', 'label': 'Subset', 'field': 'name', 'required': True, 'align': 'left', 'sortable': True},
         {'name': 'size', 'label': 'Size (MB)', 'field': 'size', 'sortable': True},
         {'name': 'downloaded', 'label': 'Downloaded', 'field': 'downloaded', 'sortable': True},
         {'name': 'partitions', 'label': 'Partitions', 'field': 'partitions', 'sortable': True},
+        {'name': 'updated', 'label': 'Up-to-date', 'field': 'updated', 'sortable': True},
         {'name': 'desc', 'label': 'Description', 'field': 'desc', 'align': 'left', 'style': 'text-wrap: wrap;'},
     ]
     rows = []
-    for subs in metadata["subsets"]:
-        info = metadata["subsets"][subs]
+    for subs in subs_meta["subsets"]:
+        info = subs_meta["subsets"][subs]
         downloaded = compute_subset_download(info)
         parts = info['partitions']
         rows.append({
@@ -54,34 +56,37 @@ def subset_table(metadata):
             'size': round(compute_subset_size(info)/1e6,3),
             'downloaded': downloaded,
             'partitions': len(parts),
+            'updated': is_subs_latest(info),
             'desc': info["description"],
         })
 
     return columns, rows
 
 
-def partition_table(metadata):
+def partition_table(part_meta):
     columns = [
         {'name': 'name', 'label': 'Partition', 'field': 'name', 'required': True, 'align': 'left', 'sortable': True},
         {'name': 'size', 'label': 'Size (MB)', 'field': 'size', 'sortable': True},
         {'name': 'downloaded', 'label': 'Downloaded', 'field': 'downloaded', 'sortable': True},
+        {'name': 'updated', 'label': 'Up-to-date', 'field': 'updated', 'sortable': True},
     ]
     rows = []
-    for part in metadata["partitions"]:
-        info = metadata["partitions"][part]
+    for part in part_meta["partitions"]:
+        info = part_meta["partitions"][part]
         rows.append({
             'name': part, 
             'size': round(info["size"]/1e6,3),
             'downloaded': 'Yes' if info["downloaded"] else 'No',
+            'updated': is_part_latest(info),
         })
 
     return columns, rows
 
-def show_partition_info(views, metadata, path, selected_parts=[]):
+def show_partition_info(path, selected_parts=[]):
     name, subs, part = path
-    infoview = views["infoview"]
+    infoview = _views["infoview"]
     infoview.clear()
-    info = metadata["datasets"][name]["subsets"][subs]["partitions"][part]
+    info = get_meta(*path)
 
     async def on_download():
         n = ui.notification(timeout=None)
@@ -90,15 +95,15 @@ def show_partition_info(views, metadata, path, selected_parts=[]):
         await asyncio.sleep(0.1)
         async def coro():
             await asyncio.to_thread(download, name, subset=subs, 
-                                    partitions=selected_parts if len(selected_parts)>0 else [part], force_redownload=False)
+                                    partitions=selected_parts if len(selected_parts)>0 else [part], force_redownload=True)
 
         task = asyncio.create_task(coro())
         await task
 
         n.message = 'Done!'
         n.spinner = False
-        metadata["datasets"]=load_meta()["datasets"]
-        show_partitions(views, metadata, path[:2])
+        show_partitions(path[:2])
+        show_partition_info(path)
         await asyncio.sleep(2)
         n.dismiss()
 
@@ -115,8 +120,8 @@ def show_partition_info(views, metadata, path, selected_parts=[]):
 
         n.message = 'Done!'
         n.spinner = False
-        metadata["datasets"]=load_meta()["datasets"]
-        show_partitions(views, metadata, path[:2])
+        show_partitions(path[:2])
+        show_partition_info(path)
         await asyncio.sleep(2)
         n.dismiss()
 
@@ -159,27 +164,26 @@ def show_partition_info(views, metadata, path, selected_parts=[]):
                 download_button = ui.button("Download selected" if len(selected_parts)>0 else "Download", icon="download", on_click=on_download).classes("w-full").props(f'color={"green" if info["downloaded"] and len(selected_parts)==0 else ""}')
                 del_button=ui.button("Remove selected" if len(selected_parts)>0 else "Remove data", icon="delete", on_click=dialog.open).classes("w-full").props('color="red"')
                 if len(selected_parts)==0:
-                    if info["downloaded"]:
+                    if info["downloaded"] and is_part_latest(info)=="Yes":
                         download_button.disable()
                     else:
                         del_button.disable()
-
-
 
         with ui.scroll_area().classes(_info_list_classes):
             if len(selected_parts)>0:
                 ui.label(f"{len(selected_parts)} partition(s) selected").classes('p-3')
             else:
-                show_partition_info_list(metadata, (name, subs, part))
+                show_partition_info_list(path)
 
 
-def show_partitions(views, metadata, path):
+def show_partitions(path):
+    metadata = get_meta()
     name, subs = path
-    dataview, infoview = views["dataview"], views["infoview"]
+    dataview, infoview = _views["dataview"], _views["infoview"]
     dataview.clear()
     infoview.clear() 
     viewing_part = Mutable()
-    columns, rows = partition_table(metadata["datasets"][name]["subsets"][subs])
+    columns, rows = partition_table(get_meta(name,subs))
     with dataview:
         table = ui.table(columns=columns, rows=rows, 
                         row_key='name',
@@ -188,25 +192,24 @@ def show_partitions(views, metadata, path):
                         ).classes('w-full sticky-header-table')
         table.on('rowClick', lambda e: (
             (viewing_part.set(e.args[-2]['name'])),
-            show_partition_info(views, metadata, (name, subs, e.args[-2]['name']), [r['name'] for r in table.selected])))
+            show_partition_info((name, subs, e.args[-2]['name']), [r['name'] for r in table.selected])))
         with table.add_slot('top'):
             backbutton = ui.button(icon="arrow_back", on_click=lambda: (
-                show_subsets(views, metadata, name),
-                show_subset_info(views, metadata, path)
+                show_subsets(name),
+                show_subset_info(path)
                 )).style('margin-right:50px;')
             with ui.input(placeholder='Search').props('type=search rounded outlined dense clearable').classes('w-1/3').bind_value(table, 'filter').add_slot('append'):
                 ui.icon('search')
             ui.label(f"{name}/{subs}").style(_title_style)
-        table.on_select(lambda: show_partition_info(views, metadata, (name, subs, viewing_part.get()), [r['name'] for r in table.selected]))
+        table.on_select(lambda: show_partition_info((name, subs, viewing_part.get()), [r['name'] for r in table.selected]))
 
-def show_schema(views, metadata, path):
+def show_schema(path):
     import glob
-    from PIL.JpegImagePlugin import JpegImageFile
 
     name, subs = path
-    infoview = views["infoview"]
+    infoview = _views["infoview"]
     infoview.clear()
-    info = metadata["datasets"][name]["subsets"][subs]
+    info = get_meta(*path)
 
     download_path = os.path.abspath(os.path.join(DATA_DIR, info["path"]))
     parquet_file = glob.glob(download_path+"/*")[0]
@@ -233,10 +236,9 @@ def show_schema(views, metadata, path):
                 for field in fields:
                     ui.label(field)
                     sample = batch.v[field][iloc.v-1]
-                    if type(sample)==JpegImageFile:
-                        ui.image(sample).classes('w-[300px]')
-                    else:
-                        ui.label(str(sample))            
+
+                    display_sample(sample)
+         
 
         with sample_content:
             with ui.scroll_area().classes('w-full h-[500px]'):
@@ -261,7 +263,7 @@ def show_schema(views, metadata, path):
 
         with ui.scroll_area().classes(f'w-full h-[{_view_height}]'):
             with ui.row().classes('h-full items-center'):
-                backbutton = ui.button(icon="arrow_back", on_click=lambda: show_subset_info(views, metadata, path)).classes('m-3')
+                backbutton = ui.button(icon="arrow_back", on_click=lambda: show_subset_info(path)).classes('m-3')
                 ui.label(subs).style("font-size:130%; font-weight:bold")
             with ui.column().classes('items-center p-5 gap-2 w-full'):
                 ui.button("preview samples",icon="find_in_page", on_click= lambda:on_click_sample(-1)).classes('w-full')
@@ -277,9 +279,9 @@ def show_schema(views, metadata, path):
                 table.on('rowClick', lambda e: on_click_sample(e.args[-2]['index']))
 
 
-def show_subset_info(views, metadata, path):
+def show_subset_info(path):
     name, subs = path
-    dataview, infoview = views["dataview"], views["infoview"]
+    dataview, infoview = _views["dataview"], _views["infoview"]
     infoview.clear()        
 
     async def on_download():
@@ -288,14 +290,14 @@ def show_subset_info(views, metadata, path):
         n.spinner = True
         await asyncio.sleep(0.1)
         async def coro():
-            download(name, subset=subs, force_redownload=False)
+            await asyncio.to_thread(download, name, subset=subs, force_redownload=True)
         task = asyncio.create_task(coro())
         await task
 
         n.message = 'Done!'
         n.spinner = False
-        metadata["datasets"]=load_meta()["datasets"]
-        show_subsets(views, metadata, path[0])
+        show_subsets(path[0])
+        show_subset_info(path)
         await asyncio.sleep(2)
         n.dismiss()
 
@@ -305,24 +307,24 @@ def show_subset_info(views, metadata, path):
         n.spinner = True
         await asyncio.sleep(0.1)
         async def coro():
-            remove(name, subset=subs, force_remove=True)
+            await asyncio.to_thread(remove, name, subset=subs, force_remove=True)
         task = asyncio.create_task(coro())
         await task
 
         n.message = 'Done!'
         n.spinner = False
-        metadata["datasets"]=load_meta()["datasets"]
-        show_subsets(views, metadata, path[0])
+        show_subsets(path[0])
+        show_subset_info(path)
         await asyncio.sleep(2)
         n.dismiss()
 
-    info = metadata["datasets"][name]["subsets"][subs]
+    info = get_meta(*path)
 
     def on_click_schema():
         if compute_subset_download(info)<=0:
             ui.notify("Schema not available until at least one partition is downloaded.")
         else:
-            show_schema(views, metadata, path)
+            show_schema(path)
 
     with infoview:
         with ui.dialog() as dialog, ui.card().classes('items-center'):
@@ -356,7 +358,7 @@ def show_subset_info(views, metadata, path):
                     )).classes('w-2/3').style('position: absolute; bottom: 10px;')
 
         with ui.column().classes(_button_column_classes):
-            ui.button("Show partitions",icon="arrow_forward",on_click=lambda: show_partitions(views, metadata, path)).classes("w-full")
+            ui.button("Show partitions",icon="arrow_forward",on_click=lambda: show_partitions(path)).classes("w-full")
             downloaded = compute_subset_download(info)
 
             ui.button("Loader snippet",icon="code", on_click=snippet.open).classes("w-full")
@@ -367,18 +369,19 @@ def show_subset_info(views, metadata, path):
                 del_button=ui.button("Remove data",icon="delete", on_click=dialog.open).classes("w-full").props('color="red"')
                 if downloaded<=0:
                     del_button.disable()
-                if downloaded==len(info["partitions"]):
+                if downloaded==len(info["partitions"]) and is_subs_latest(info)=="Yes":
                     download_button.disable()
 
         with ui.scroll_area().classes(_info_list_classes):
-            show_subset_info_list(views, metadata, path)
+            show_subset_info_list(_views, path)
 
-def show_subsets(views, metadata, name):
-    dataview, infoview = views["dataview"], views["infoview"]
+def show_subsets(name):
+    metadata = get_meta()
+    dataview, infoview = _views["dataview"], _views["infoview"]
 
     dataview.clear()
     infoview.clear()
-    columns, rows = subset_table(metadata["datasets"][name])
+    columns, rows = subset_table(get_meta(name))
 
     with dataview:            
         table = ui.table(columns=columns, rows=rows, 
@@ -386,52 +389,69 @@ def show_subsets(views, metadata, name):
                          pagination={'rowsPerPage': 10, 'sortBy': 'downloaded', 'descending':True, 'page': 1}
                          ).classes('w-full sticky-header-table')
 
-        table.on('rowClick', lambda e: show_subset_info(views, metadata, (name,e.args[-2]['name'])))
+        table.on('rowClick', lambda e: show_subset_info((name,e.args[-2]['name'])))
         with table.add_slot('top'):
             backbutton = ui.button(icon="arrow_back", on_click=lambda: (
-                show_datasets(views, metadata),
-                show_dataset_info(views, metadata, name)
+                show_datasets(),
+                show_dataset_info(name)
                 )).style('margin-right:50px;')
             with ui.input(placeholder='Search').props('type=search rounded outlined dense clearable').classes('w-1/3').bind_value(table, 'filter').add_slot('append'):
                     ui.icon('search')
             ui.label(f"{name}").style(_title_style)
 
-def show_dataset_info(views, metadata, name):
-    dataview, infoview = views["dataview"], views["infoview"]
+def show_dataset_info(name):
+    dataview, infoview = _views["dataview"], _views["infoview"]
     infoview.clear()
+
+    async def on_version_check():
+        n = ui.notification(timeout=None)
+        n.message = 'Checking for updates ...'
+        n.spinner = True
+        await asyncio.sleep(0.1)
+        async def coro():
+            return await asyncio.to_thread(version_check, name)
+        task = asyncio.create_task(coro())
+        updated = await task
+
+        n.spinner = False
+        n.message = "All downloaded data are up-to-date!" if updated else "Some data are outdated, view subsets for more information."
+        await asyncio.sleep(2)
+        n.dismiss()
 
     with infoview:
         with ui.column().classes(_button_column_classes):
-            ui.button("Show subsets",icon="arrow_forward",on_click=lambda: show_subsets(views, metadata, name)).classes("w-full")
+            ui.button("Show subsets",icon="arrow_forward",on_click=lambda: show_subsets(name)).classes("w-full")
+            ui.button("Version check",icon="published_with_changes",on_click=on_version_check).classes("w-full")
+            
         with ui.scroll_area().classes(_info_list_classes):
-            show_dataset_info_list(views, metadata, name)
+            show_dataset_info_list(_views, name)
 
+def show_datasets():
+    metadata = get_meta()
 
-def show_datasets(views, metadata):
-    dataview, infoview = views["dataview"], views["infoview"]
+    dataview, infoview = _views["dataview"], _views["infoview"]
     dataview.clear()
     infoview.clear()
-    columns, rows = dataset_table(metadata)
+    columns, rows = dataset_table()
     with dataview:
         table = ui.table(columns=columns, rows=rows, 
                         row_key='name',
                         pagination={'rowsPerPage': 10, 'sortBy': 'name', 'page': 1}
                         ).classes('w-full sticky-header-table')
             
-        table.on('rowClick', lambda e: show_dataset_info(views, metadata, e.args[-2]['name']))
+        table.on('rowClick', lambda e: show_dataset_info(e.args[-2]['name']))
         with table.add_slot('top'):                        
             with ui.input(placeholder='Search').props('type=search rounded outlined dense clearable').classes('w-1/3').bind_value(table, 'filter').add_slot('append'):
                 ui.icon('search')
 
 def show(context):
     print("[INFO] reading metafiles")
-    metadata = load_meta()
+    metadata = get_meta()
     context.clear()
-    views = dict()
     with context:
         dataview = ui.column().classes(f'w-3/4 h-[{_view_height}]')
-        views["dataview"] = dataview
+        _views["dataview"] = dataview
         with ui.card().classes(f'theme-color w-1/4 h-[{_view_height}]'):
             infoview = ui.column().classes(f'w-full h-full px-0 py-0 items-center')
-        views["infoview"] = infoview
-    show_datasets(views, metadata)
+        _views["infoview"] = infoview
+    show_datasets()

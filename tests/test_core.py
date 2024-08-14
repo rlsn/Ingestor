@@ -24,6 +24,8 @@ def test_core():
     pygestor.list_partitions("wikimedia/wikipedia", "20231101.ady")
     pygestor.list_subsets("wikimedia/wikipedia")
 
+    pygestor.version_check("wikimedia/wikipedia")
+
     ds = pygestor.stream_dataset("wikimedia/wikipedia", "20231101.ch", download_if_missing=False)
     x = pygestor.process_samples("wikimedia/wikipedia", next(iter(ds)))
     print(x)
