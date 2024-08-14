@@ -4,6 +4,8 @@ and the first 10 parquet files of wikimedia/wit_base
 
 rlsn 2024
 """
+import os, sys
+sys.path.append(os.getcwd())
 import pygestor
 
 pygestor.download("wikimedia/wikipedia", "20231101.en", force_redownload=False)

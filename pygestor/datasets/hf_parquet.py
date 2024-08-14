@@ -75,7 +75,7 @@ class HuggingFaceParquetDataset(BaseDataset):
         repo_id = get_meta(datapath[0])["source"].split("huggingface.co/datasets/")[-1]
         part_info = get_meta(*datapath)
         download_path = joinpath(DATA_DIR, part_info["path"])
-        blob_id = get_paths_info("wikimedia/wikipedia", part_info["hf_path"], repo_type="dataset")[0].blob_id
+        blob_id = get_paths_info(repo_id, part_info["hf_path"], repo_type="dataset")[0].blob_id
 
         os.makedirs(os.path.dirname(download_path),exist_ok=True)
         filepath=hf_hub_download(repo_id=repo_id,

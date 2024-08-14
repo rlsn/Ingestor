@@ -53,6 +53,12 @@ python .\run-gui.py
 
 For a usage guide on the CLI, refer to [docs/cli_usage.md](docs/cli_usage.md)
 
+### Download Dataset
+Datasets can be downloaded via the WebUI or using the API. Run the following example script to download '20231101.en' subset from [wikimedia/wikipedia](https://huggingface.co/datasets/wikimedia/wikipedia), and the first 10 parquet files from [wikimedia/wit_base](https://huggingface.co/datasets/wikimedia/wit_base)
+```
+python .\examples\download_example.py
+```
+
 ## Adding a New Dataset
 
 New datasets can be added using predefined ingestion and processing pipelines. For example, the [HuggingFaceParquet](pygestor/datasets/hf_parquet.py) pipeline can be used to ingest Parquet datasets from Hugging Face. It is recommended to use the WebUI for this process. In the "Add New" menu, fill in the dataset name, URL, and pipeline name to retrieve and save the metadata of the new dataset. For example:
