@@ -45,7 +45,7 @@
                             "size": 347450,
                             "n_samples": 0,
                             "downloaded": false,
-                            "acquisition_time": 1723637621.5785975,
+                            "acquisition_time": 1723638604.8734362,
                             "hf_path": "20231101.ady/train-00000-of-00001.parquet",
                             "blob_id": "b7ce8caa81033421829fce6a1a4449449e7382f6",
                             "is_latest": true
@@ -905,7 +905,7 @@
                             "size": 89277,
                             "n_samples": 0,
                             "downloaded": false,
-                            "acquisition_time": 1723637603.5964463,
+                            "acquisition_time": 1723638355.1088855,
                             "hf_path": "20231101.ch/train-00000-of-00001.parquet",
                             "is_latest": true,
                             "blob_id": "e0c19a760812fb4b4c66edbf7e9d0cdc2998d45f"
@@ -10883,9 +10883,9 @@
                         "part-00000-6969a924-98f5-4f8e-ba24-ea3bae7d9790-c000.snappy.parquet": {
                             "path": "bigdata-pw/Diffusion1B\\data\\part-00000-6969a924-98f5-4f8e-ba24-ea3bae7d9790-c000.snappy.parquet",
                             "size": 334654940,
-                            "n_samples": 999313,
-                            "downloaded": true,
-                            "acquisition_time": 1723635353.9994035,
+                            "n_samples": 0,
+                            "downloaded": false,
+                            "acquisition_time": null,
                             "hf_path": "part-00000-6969a924-98f5-4f8e-ba24-ea3bae7d9790-c000.snappy.parquet"
                         },
                         "part-00001-6969a924-98f5-4f8e-ba24-ea3bae7d9790-c000.snappy.parquet": {

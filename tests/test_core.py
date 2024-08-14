@@ -28,7 +28,8 @@ def test_core():
     ds = pygestor.stream_dataset("wikimedia/wikipedia", "20231101.ch", download_if_missing=False)
     x = pygestor.process_samples("wikimedia/wikipedia", next(iter(ds)))
     print(x)
-
+    for b in ds:
+        pass
     pygestor.remove("wikimedia/wikipedia", force_remove=True)
 
 

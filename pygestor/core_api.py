@@ -194,10 +194,10 @@ def remove(name, subset=None, partitions=[], force_remove=False):
         shutil.rmtree(normpath(os.path.join(DATA_DIR, metadata[name]["path"])), ignore_errors=True)
 
         # update metadata
-        for subset in metadata[name]['subsets']:
-            for part in metadata[name]['subsets'][subset]['partitions']:
-                metadata[name]['subsets'][subset]['partitions'][part]['downloaded']=False
-                metadata[name]['subsets'][subset]['partitions'][part]['n_samples']=0
+        for subset in metadata[name]['subsets'].values():
+            for part in subset['partitions'].values():
+                part['downloaded']=False
+                part['n_samples']=0
 
         write_meta(root)
         print(f"[INFO] {metadata[name]['path']} deleted")
@@ -265,7 +265,7 @@ def download(name:str, subset:str=None, partitions:list=None, force_redownload:b
         info = data_info["partitions"][part]
         if verbose:
             print(f"[INFO] [{i+1}/{len(partitions)}] downloading {info['path']}")
-
+        print(info["downloaded"])
         if not info["downloaded"] or force_redownload:
             downloaded_path = data_cls.download((name, subset, part))
             # update download info
@@ -275,6 +275,8 @@ def download(name:str, subset:str=None, partitions:list=None, force_redownload:b
             # timestamp
             info["acquisition_time"] = time.time()
             write_meta(root)
+            print(downloaded_path, os.path.exists(downloaded_path))
+
     if verbose:
         print("[INFO] downloading complete.")
 
