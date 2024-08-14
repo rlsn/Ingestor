@@ -275,7 +275,7 @@ def download(name:str, subset:str=None, partitions:list=None, force_redownload:b
             # timestamp
             info["acquisition_time"] = time.time()
             write_meta(root)
-            print(downloaded_path, os.path.exists(downloaded_path))
+            print(downloaded_path, os.path.exists(normpath(downloaded_path)))
 
     if verbose:
         print("[INFO] downloading complete.")
