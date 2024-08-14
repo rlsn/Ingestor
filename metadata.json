@@ -45,8 +45,10 @@
                             "size": 347450,
                             "n_samples": 0,
                             "downloaded": false,
-                            "acquisition_time": null,
-                            "hf_path": "20231101.ady/train-00000-of-00001.parquet"
+                            "acquisition_time": 1723637621.5785975,
+                            "hf_path": "20231101.ady/train-00000-of-00001.parquet",
+                            "blob_id": "b7ce8caa81033421829fce6a1a4449449e7382f6",
+                            "is_latest": true
                         }
                     }
                 },
@@ -901,10 +903,12 @@
                         "train-00000-of-00001.parquet": {
                             "path": "wikimedia/wikipedia\\20231101.ch\\train-00000-of-00001.parquet",
                             "size": 89277,
-                            "n_samples": 576,
-                            "downloaded": true,
-                            "acquisition_time": 1723635182.7164783,
-                            "hf_path": "20231101.ch/train-00000-of-00001.parquet"
+                            "n_samples": 0,
+                            "downloaded": false,
+                            "acquisition_time": 1723637603.5964463,
+                            "hf_path": "20231101.ch/train-00000-of-00001.parquet",
+                            "is_latest": true,
+                            "blob_id": "e0c19a760812fb4b4c66edbf7e9d0cdc2998d45f"
                         }
                     }
                 },
