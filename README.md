@@ -20,7 +20,7 @@ A data interface designed to seamlessly acquire, organize, and manage diverse da
 - Data Organization:
     - Three-level data organization structure: dataset, subset, and partition.
     - Support for both local and network file systems for data storage.
-    - Efficient handling of large files by storing data in partitions.
+    - Efficient handling of large files by chunking and storing data in parquet partitions.
 
 - Web Interface
     - Introduced a web UI for intuitive data management and analysis.
@@ -74,16 +74,16 @@ python cli.py -init -d <new_dataset_name>
 
 ## Technical Details
 ### Storage
-The data is stored in a file storage system and organized into three levels: dataset, subset (distinguished by version, language, class, split, annotation, etc.), and partition (splitting large files into smaller chunks for memory efficiency), as follows:
+The data is stored in a file storage system and organized into three levels: dataset, subset (distinguished by version, language, class, split, annotation, etc.), and partition (splitting large files into smaller parquet files for memory efficiency), as follows:
 
 ```
 dataset_A
 ├── subset_a
-│   ├── partition_1
-│   └── partition_2
+│   ├── partition_1.parquet
+│   └── partition_2.parquet
 └── subset_b
-    ├── partition_1
-    └── partition_2
+    ├── partition_1.parquet
+    └── partition_2.parquet
 ...
 ```
 File storage is used for its comparatively high cost efficiency, scalability, and ease of management compared to other types of storage.
